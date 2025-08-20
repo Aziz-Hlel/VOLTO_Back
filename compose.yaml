@@ -10,6 +10,15 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3,cloudfront
+
+
+      
 volumes:
   db_data:
     driver: local

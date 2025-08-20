@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaClient } from 'generated/prisma';
+import { CreateWorkerDto } from './dto/create-worker.dto';
 
 @Injectable()
 export class WorkersService {
@@ -12,5 +13,16 @@ export class WorkersService {
             orderBy: { ranking: 'desc' }, // optional, sort by ranking
         });
     }
+
+    async create(dto: CreateWorkerDto) {
+        return this.prisma.worker.create({
+            data: {
+                name: dto.name,
+                occupation: dto.occupation,
+                ranking: dto.ranking,
+            },
+        });
+    }
+
 
 }
