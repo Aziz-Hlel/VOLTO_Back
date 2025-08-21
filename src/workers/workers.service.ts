@@ -1,6 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaClient } from 'generated/prisma';
 import { CreateWorkerDto } from './dto/create-worker.dto';
+import { WorkerMapper } from './mappers/worker.mapper';
+import { WorkerResponseDto } from './dto/WorkerResponseDto';
 
 @Injectable()
 export class WorkersService {
@@ -8,20 +10,14 @@ export class WorkersService {
     constructor(@Inject('PRISMA_SERVICE') private prisma: PrismaClient) { }
 
 
-    async findAll() {
-        return this.prisma.worker.findMany({
-            orderBy: { ranking: 'desc' }, // optional, sort by ranking
-        });
+    async create(dto: CreateWorkerDto): Promise<WorkerResponseDto> {
+        const worker = await this.prisma.worker.create({ data: dto });
+        return WorkerMapper.toResponse(worker);
     }
 
-    async create(dto: CreateWorkerDto) {
-        return this.prisma.worker.create({
-            data: {
-                name: dto.name,
-                occupation: dto.occupation,
-                ranking: dto.ranking,
-            },
-        });
+    async findAll(): Promise<WorkerResponseDto[]> {
+        const workers = await this.prisma.worker.findMany();
+        return workers.map(WorkerMapper.toResponse);
     }
 
 

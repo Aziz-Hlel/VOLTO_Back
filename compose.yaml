@@ -10,15 +10,25 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
-  localstack:
-    image: localstack/localstack
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
     ports:
-      - "4566:4566"
+      - "9000:9000"  # S3 API
+      - "9001:9001"  # Web UI
     environment:
-      - SERVICES=s3,cloudfront
-
-
+      MINIO_ROOT_USER: MINIO_ROOT_USER
+      MINIO_ROOT_PASSWORD: MINIO_ROOT_PASSWORD
       
+    volumes:
+      - minio_data:/data
+
+
+
+
 volumes:
   db_data:
+    driver: local
+  minio_data:
     driver: local
