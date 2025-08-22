@@ -1,5 +1,5 @@
 // src/auth/auth.controller.ts
-import { Body, Controller, Post, UseGuards, Req, Get } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Req, Get, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { CreateUserDto } from '../users/Dto/create-user';
@@ -16,6 +16,7 @@ import { RolesGuard } from './guards/roles.guard';
 export class AuthController {
     constructor(private authService: AuthService) { }
 
+    @HttpCode(201)
     @Post('register')
     async register(@Body() dto: CreateUserDto) {
 
@@ -24,6 +25,7 @@ export class AuthController {
         return payload;
     }
 
+    @HttpCode(200)
     @Post('login')
     async login(@Body() dto: { email: string; password: string }) {
         const payload = await this.authService.login(dto.email, dto.password);
@@ -32,6 +34,7 @@ export class AuthController {
     }
 
 
+    @HttpCode(200)
     @Post('refresh')
     async refresh(@Body() { refreshToken }: { refreshToken: string }) {
 
@@ -43,7 +46,8 @@ export class AuthController {
 
 
 
-    @UseGuards(AuthGuard)  // AuthGuard first, then RolesGuard
+    @UseGuards(AuthGuard)
+    @HttpCode(200)
     @Get('me')
     async me(@CurrentUser() user: AuthUser) {
         // console.log(req);
@@ -54,8 +58,9 @@ export class AuthController {
     }
 
 
-    @UseGuards(AuthGuard, RolesGuard)  // AuthGuard first, then RolesGuard
+    @UseGuards(AuthGuard, RolesGuard)
     @Roles(Role.ADMIN)
+    @HttpCode(200)
     @Get('test')
     async test(@CurrentUser() user: AuthUser) {
 
@@ -71,3 +76,4 @@ export class AuthController {
 
 
 }
+
