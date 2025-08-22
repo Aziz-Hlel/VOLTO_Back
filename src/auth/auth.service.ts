@@ -1,6 +1,6 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaClient, User } from 'generated/prisma';
+import { PrismaClient, Role, User } from 'generated/prisma';
 import { UsersService } from 'src/users/users.service';
 
 import * as bcrypt from 'bcrypt';
@@ -8,6 +8,7 @@ import { CreateUserDto } from '../users/Dto/create-user';
 import { UserMapper } from 'src/users/Mapper/usersMapper';
 import { AuthUser } from 'src/users/Dto/AuthUser';
 import { UserResponseDto } from 'src/users/Dto/userResponse';
+import { Roles } from './decorators/roles.decorator';
 
 @Injectable()
 export class AuthService {
@@ -90,8 +91,9 @@ export class AuthService {
 
 
 
+   
+    async me(user: AuthUser): Promise<UserResponseDto> {
 
-    async me(user: AuthUser): UserResponseDto {
         const foundUser = await this.usersService.findById(user.id);
         if (!foundUser) throw new UnauthorizedException('User not found');
 

@@ -9,7 +9,10 @@ export class UserMapper {
     // Convert full User DB object to API response
     static toResponse(user: User): UserResponseDto {
         const { password, createdAt, updatedAt, ...result } = user; // exclude password
-        return result;
+        return {
+            ...result,
+            phoneNumber: result.phoneNumber === null ? undefined : result.phoneNumber
+        };
     }
 
     static toTokenPayload(user: User): jwtUserToken {

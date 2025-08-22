@@ -1,13 +1,16 @@
 // src/auth/auth.controller.ts
 import { Body, Controller, Post, UseGuards, Req, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { JwtRefreshGuard } from './jwt-refresh.guard';
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { CreateUserDto } from '../users/Dto/create-user';
 import { Validate } from 'class-validator';
-import { JwtAuthGuard } from './jwt.guard';
-import { JwtStrategy } from './jwt.strategy';
+import { AuthGuard } from './guards/jwt.guard';
+import { JwtStrategy } from './strategy/jwt.strategy';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthUser } from 'src/users/Dto/AuthUser';
+import { Roles } from './decorators/roles.decorator';
+import { Role } from 'generated/prisma';
+import { RolesGuard } from './guards/roles.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -40,26 +43,27 @@ export class AuthController {
 
 
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(AuthGuard)  // AuthGuard first, then RolesGuard
     @Get('me')
     async me(@CurrentUser() user: AuthUser) {
         // console.log(req);
         const userDto = this.authService.me(user);
 
         return userDto;
-        
+
     }
 
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(AuthGuard, RolesGuard)  // AuthGuard first, then RolesGuard
+    @Roles(Role.ADMIN)
     @Get('test')
-    async test(@Req() req) {
-        // console.log(req);
-        return {
-            message: 'You are authenticated!',
-            user: req.user, // populated by JwtStrategy.validate()
+    async test(@CurrentUser() user: AuthUser) {
 
+        return {
+            message: 'You are authenticated and authorized!',
+            user,
         };
+
     }
 
 
