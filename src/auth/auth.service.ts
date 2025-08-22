@@ -6,6 +6,8 @@ import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../users/Dto/create-user';
 import { UserMapper } from 'src/users/Mapper/usersMapper';
+import { AuthUser } from 'src/users/Dto/AuthUser';
+import { UserResponseDto } from 'src/users/Dto/userResponse';
 
 @Injectable()
 export class AuthService {
@@ -22,45 +24,35 @@ export class AuthService {
 
         const tokens = this.getTokens(user);
 
-        const userResponseDto = UserMapper.toResponse(user);
-
-        return {
-            userResponseDto,
-            ...tokens
-        };
+        return tokens;
 
     }
 
     async login(email: string, password: string) {
-        const user = await this.validateUser(email, password);
+        const validatedUser = await this.validateUser(email, password);
 
-        const tokens = this.getTokens(user);
+        const tokens = this.getTokens(validatedUser);
 
-        const userResponseDto = UserMapper.toResponse(user);
+        return tokens;
 
-        return {
-            userResponseDto,
-            ...tokens
-        };
     }
 
 
 
     async refresh(refreshToken: string) {
+
+
         try {
-            const payload = this.jwtService.verify(refreshToken, {
-                secret: process.env.JWT_REFRESH_SECRET,
-            });
 
-            const newPayload = { sub: payload.sub, username: payload.username };
+            const payload = await this.jwtService.verify(refreshToken, { secret: process.env.JWT_REFRESH_SECRET, });
 
-            return {
-                accessToken: this.jwtService.sign(newPayload, { expiresIn: '15m' }),
-                refreshToken: this.jwtService.sign(newPayload, {
-                    secret: process.env.JWT_REFRESH_SECRET,
-                    expiresIn: '7d',
-                }),
-            };
+            const user = await this.usersService.findById(payload.sub);
+            if (!user) throw new UnauthorizedException('User not found');
+
+            const tokens = this.getTokens(user);
+
+            return tokens;
+
         } catch {
             throw new UnauthorizedException('Invalid refresh token');
         }
@@ -70,11 +62,15 @@ export class AuthService {
 
 
     async validateUser(email: string, password: string) {
+
         const user = await this.usersService.findByEmail(email);
-        if (user && await bcrypt.compare(password, user.password)) {
-            return user;
-        }
-        throw new UnauthorizedException('Invalid credentials');
+        if (!user) throw new UnauthorizedException('Invalid credentials');
+
+        const passwordValid = await bcrypt.compare(password, user.password);
+        if (!passwordValid) throw new UnauthorizedException('Invalid credentials');
+
+        return user;
+
     }
 
     public getTokens(user: User) {
@@ -95,6 +91,14 @@ export class AuthService {
 
 
 
+    async me(user: AuthUser): UserResponseDto {
+        const foundUser = await this.usersService.findById(user.id);
+        if (!foundUser) throw new UnauthorizedException('User not found');
+
+        const userDto = UserMapper.toResponse(foundUser);
+
+        return userDto;
+    }
 
 
 }

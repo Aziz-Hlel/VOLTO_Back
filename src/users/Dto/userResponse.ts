@@ -1,11 +1,12 @@
-import { Gender, Role } from "generated/prisma";
+import { Gender, Role, Tier } from "generated/prisma";
 
 
 export class UserResponseDto {
-  id: number;
+  id: string;
   email: string;
   gender: Gender;
   phoneNumber?: string;
   username: string;
   role: Role;
+  tier:Tier;
 }

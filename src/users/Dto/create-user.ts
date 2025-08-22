@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsPositive, IsString, Max, MaxLength, MinLength } from "class-validator";
+import { IsEnum, IsInt, IsOptional, IsPositive, IsString, Matches, Max, MaxLength, MinLength } from "class-validator";
 import { Gender } from "generated/prisma";
 
 
@@ -13,18 +13,17 @@ export class CreateUserDto {
     email: string;
 
     @IsOptional()
+    @Matches(/^[0-9]+$/, { message: 'Phone number must contain only numbers', })
     phoneNumber: string;
-    
+
     @IsString()
     @MinLength(6)
     @MaxLength(20)
     password: string;
-    
-    @IsString() 
-    gender: Gender; 
 
-    @IsString()
-    @MinLength(2)
-    occupation: string;
+    @IsEnum(Gender, { message: 'Gender must be either M or F' })
+    gender: Gender;
+
+
 
 }

@@ -9,7 +9,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
     constructor() {
         super({
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            jwtFromRequest: ExtractJwt.fromBodyField('refreshToken'),
             secretOrKey: process.env.JWT_REFRESH_SECRET,
             passReqToCallback: true,
         });
