@@ -1,6 +1,4 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateMediaDto } from './dto/create-media.dto';
-import { UpdateMediaDto } from './dto/update-media.dto';
 import { Media, PrismaClient } from 'generated/prisma';
 import { MediaIdentifier } from './types/MediaIndetifier';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -11,9 +9,8 @@ export class MediaService {
   constructor(private prisma: PrismaService) { }
 
 
-  create(createMediaDto: CreateMediaDto) {
-    return 'This action adds a new media';
-  }
+  createPendingMedia(PreSignedUrlRequest)
+
 
   findAll() {
     return `This action returns all media`;
@@ -35,9 +32,7 @@ export class MediaService {
   //   return media;
   // };
 
-  update(id: number, updateMediaDto: UpdateMediaDto) {
-    return `This action updates a #${id} media`;
-  }
+
 
   remove(id: number) {
     return `This action removes a #${id} media`;

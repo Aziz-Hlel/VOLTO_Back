@@ -62,19 +62,27 @@ enum EntityType {
   EVENT
 }
 
+enum MediaStatus {
+  PENDING
+  UPLOADED
+  FAILED
+}
+
 model Media {
-  id           String @id @default(uuid())
-  s3Key        String
+  s3Key        String      @id
+  originalName String
   fileType     String
   mimeType     String
   fileSize     Int?
-  originalName String
+  status       MediaStatus @default(PENDING)
 
-  entityType   EntityType 
-  entityId     String
+  entityType   EntityType
+  entityId     String?
   mediaPurpose String? // 'avatar', 'gallery', 'thumbnail'
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  confirmedAt DateTime?
 
   @@unique([entityType, entityId, mediaPurpose])
   @@index([entityType, entityId])

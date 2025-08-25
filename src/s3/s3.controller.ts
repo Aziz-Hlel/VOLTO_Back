@@ -1,11 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, UseGuards } from '@nestjs/common';
 import { S3Service } from './s3.service';
 import { CreateS3Dto } from './dto/create-s3.dto';
 import { UpdateS3Dto } from './dto/update-s3.dto';
+import { PreSignedUrlRequest } from './dto/preSignedUrl.dto';
+import { AuthGuard } from 'src/auth/guards/jwt.guard';
 
 @Controller('s3')
 export class S3Controller {
-  constructor(private readonly s3Service: S3Service) {}
+  constructor(private readonly s3Service: S3Service) { }
+
+  @Post()
+  @HttpCode(200)
+  @UseGuards(AuthGuard)
+  async getPresignedUrl(@Body() preSignedUrlDto: PreSignedUrlRequest) {
+
+    const response = await this.s3Service.getPresignedUrl(preSignedUrlDto);
+
+    return response;
+  }
+
 
   @Post()
   create(@Body() createS3Dto: CreateS3Dto) {

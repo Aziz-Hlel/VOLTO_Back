@@ -1,16 +1,19 @@
 import { Body, HttpCode, Injectable } from '@nestjs/common';
 import { CreateS3Dto } from './dto/create-s3.dto';
 import { UpdateS3Dto } from './dto/update-s3.dto';
-import { PreSignedUrlDto } from './dto/preSignedUrl.dto';
+import { PreSignedUrlRequest } from './dto/preSignedUrl.dto';
 
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import ENV from 'src/config/env';
 import path from 'path';
+import { s3Mapper } from './mapper/s3Mapper';
+import { MediaService } from 'src/media/media.service';
 
 @Injectable()
 export class S3Service {
 
+  constructor(mediaService: MediaService) { }
 
   private static readonly s3Client = new S3Client({
     region: process.env.AWS_REGION as string,
@@ -32,9 +35,26 @@ export class S3Service {
 
 
 
-  async getPresignedUrl(@Body() createS3Dto: PreSignedUrlDto) {
+  async getPresignedUrl(preSignedUrlDto: PreSignedUrlRequest) {
 
+    const fileKey = this.generateFileKey(preSignedUrlDto.originalName);
+    const fileType = preSignedUrlDto.fileType;
+    const expiresIn = 3600;
+
+    const command = new PutObjectCommand({
+      Bucket: ENV.AWS_S3_BUCKET,
+      Key: fileKey,
+      ContentType: fileType,
+      ContentDisposition: 'attachment', // Security: prevent content-type switching
+    });
+
+
+    const signedUrl = await getSignedUrl(S3Service.s3Client, command, { expiresIn, });
     
+
+    const response = s3Mapper.toPreSignedUrlResponse(signedUrl, fileKey);
+
+    return response;
 
   }
 
