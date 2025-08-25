@@ -55,11 +55,30 @@ model Worker {
   updatedAt  DateTime @updatedAt
 }
 
+enum EntityType {
+  USER
+  PRODUCT
+  ARTICLE
+  EVENT
+}
+
 model Media {
-  id        String   @id @default(uuid())
-  s3Key     String   @unique
+  id           String @id @default(uuid())
+  s3Key        String
+  fileType     String
+  mimeType     String
+  fileSize     Int?
+  originalName String
+
+  entityType   EntityType 
+  entityId     String
+  mediaPurpose String? // 'avatar', 'gallery', 'thumbnail'
+
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  @@unique([entityType, entityId, mediaPurpose])
+  @@index([entityType, entityId])
+  @@index([entityType, entityId, mediaPurpose])
 }
 
 enum EventType {
@@ -68,16 +87,13 @@ enum EventType {
 }
 
 model Event {
-  id            Int      @id @default(autoincrement())
+  id            String   @id @default(uuid())
   name          String
   description   String?
   startDate     DateTime
   endDate       DateTime
   isLadiesNight Boolean  @default(false)
 
-  thumbnail  Media?  @relation(fields: [thumbnailId], references: [id])
-  thumbnailId String?
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

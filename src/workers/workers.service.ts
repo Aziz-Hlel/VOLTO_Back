@@ -3,11 +3,12 @@ import { PrismaClient } from 'generated/prisma';
 import { CreateWorkerDto } from './dto/create-worker.dto';
 import { WorkerMapper } from './mappers/worker.mapper';
 import { WorkerResponseDto } from './dto/WorkerResponseDto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class WorkersService {
 
-    constructor(@Inject('PRISMA_SERVICE') private prisma: PrismaClient) { }
+    constructor(private prisma: PrismaService) { }
 
 
     async create(dto: CreateWorkerDto): Promise<WorkerResponseDto> {

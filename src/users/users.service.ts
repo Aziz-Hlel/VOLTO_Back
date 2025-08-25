@@ -2,10 +2,11 @@ import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { PrismaClient } from 'generated/prisma';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/users/Dto/create-user';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
-  constructor(@Inject('PRISMA_SERVICE') private prisma: PrismaClient) { }
+  constructor(private prisma: PrismaService) { }
 
   findAll() {
     return this.prisma.user.findMany();
@@ -22,7 +23,7 @@ export class UsersService {
 
 
   async register(dto: CreateUserDto) {
-    
+
     const existingUser = await this.findByEmail(dto.email);
 
     if (existingUser) throw new UnauthorizedException('Email already exists');

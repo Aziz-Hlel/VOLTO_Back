@@ -9,11 +9,11 @@ import { UserMapper } from 'src/users/Mapper/usersMapper';
 import { AuthUser } from 'src/users/Dto/AuthUser';
 import { UserResponseDto } from 'src/users/Dto/userResponse';
 import { Roles } from './decorators/roles.decorator';
+import ENV from 'src/config/env';
 
 @Injectable()
 export class AuthService {
 
-    // constructor(@Inject('PRISMA_SERVICE') private prisma: PrismaClient) { }
 
 
     constructor(private usersService: UsersService, private jwtService: JwtService,) { }
@@ -45,7 +45,7 @@ export class AuthService {
 
         try {
 
-            const payload = await this.jwtService.verify(refreshToken, { secret: process.env.JWT_REFRESH_SECRET, });
+            const payload = await this.jwtService.verify(refreshToken, { secret: ENV.JWT_REFRESH_SECRET, });
 
             const user = await this.usersService.findById(payload.sub);
             if (!user) throw new UnauthorizedException('User not found');
@@ -79,11 +79,11 @@ export class AuthService {
         const payload = UserMapper.toTokenPayload(user);
 
         const accessToken = this.jwtService.sign(payload, {
-            secret: process.env.JWT_ACCESS_SECRET,
+            secret: ENV.JWT_ACCESS_SECRET,
             expiresIn: '15m',
         });
         const refreshToken = this.jwtService.sign(payload, {
-            secret: process.env.JWT_REFRESH_SECRET,
+            secret: ENV.JWT_REFRESH_SECRET,
             expiresIn: '7d',
         });
         return { accessToken, refreshToken };
