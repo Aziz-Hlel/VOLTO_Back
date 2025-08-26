@@ -1,5 +1,5 @@
 import { Media, MediaStatus } from "generated/prisma";
-import { PreSignedUrlRequest } from "src/s3/dto/preSignedUrl.dto";
+import { PreSignedUrlRequest } from "src/storage/dto/preSignedUrl.dto";
 import { createPendingMedia } from "../dto/createPendingMedia";
 
 

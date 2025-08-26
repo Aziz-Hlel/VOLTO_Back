@@ -1,7 +1,7 @@
 import { IsEnum, IsPositive, IsString, Max, MinLength } from "class-validator";
 import { EntityType } from "generated/prisma";
 
-const FileType = {
+export const FileType = {
     JPG: '.jpg',
     JPEG: '.jpeg',
     PNG: '.png',
@@ -10,6 +10,8 @@ const FileType = {
     AVI: '.avi',
     GIF: '.gif',
 } as const;
+
+export type FileType = typeof FileType[keyof typeof FileType];
 
 export class PreSignedUrlRequest {
 

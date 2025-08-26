@@ -1,6 +1,6 @@
 import { PreSignedUrlResponse } from "../dto/PreSignedUrlResponse";
 
-export class s3Mapper {
+export class StorageMapper {
 
     static toPreSignedUrlResponse(url: string, s3Key: string): PreSignedUrlResponse {
         const response = new PreSignedUrlResponse();

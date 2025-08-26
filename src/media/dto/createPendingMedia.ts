@@ -1,4 +1,4 @@
-import { PreSignedUrlRequest } from "src/s3/dto/preSignedUrl.dto";
+import { PreSignedUrlRequest } from "src/storage/dto/preSignedUrl.dto";
 
 
 export class createPendingMedia extends PreSignedUrlRequest {

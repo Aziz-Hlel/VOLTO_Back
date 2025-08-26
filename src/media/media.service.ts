@@ -2,6 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Media, PrismaClient } from 'generated/prisma';
 import { MediaIdentifier } from './types/MediaIndetifier';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { PreSignedUrlRequest } from 'src/storage/dto/preSignedUrl.dto';
 
 @Injectable()
 export class MediaService {
@@ -9,7 +10,20 @@ export class MediaService {
   constructor(private prisma: PrismaService) { }
 
 
-  createPendingMedia(PreSignedUrlRequest)
+  createPendingMedia(preSignedUrlDto: PreSignedUrlRequest, fileKey: string) {
+    return this.prisma.media.create({
+      data: {
+        originalName: preSignedUrlDto.originalName,
+        s3Key: fileKey,
+        entityType: preSignedUrlDto.entityType,
+        mimeType: preSignedUrlDto.mimeType,
+        entityId: null,
+        mediaPurpose: preSignedUrlDto.mediaPurpose || null,
+        fileType: preSignedUrlDto.fileType,
+        status: 'PENDING',
+      }
+    });
+  }
 
 
   findAll() {

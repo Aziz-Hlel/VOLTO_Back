@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { S3Controller } from './s3.controller';
-import { S3Service } from './s3.service';
+import { StorageController } from './storage.controller';
+import { StorageService } from './storage.service';
 
 describe('S3Controller', () => {
-  let controller: S3Controller;
+  let controller: StorageController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [S3Controller],
-      providers: [S3Service],
+      controllers: [StorageController],
+      providers: [StorageService],
     }).compile();
 
-    controller = module.get<S3Controller>(S3Controller);
+    controller = module.get<StorageController>(StorageController);
   });
 
   it('should be defined', () => {

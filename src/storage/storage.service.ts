@@ -7,13 +7,13 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import ENV from 'src/config/env';
 import path from 'path';
-import { s3Mapper } from './mapper/s3Mapper';
+import { StorageMapper } from './mapper/StorageMapper';
 import { MediaService } from 'src/media/media.service';
 
 @Injectable()
-export class S3Service {
+export class StorageService {
 
-  constructor(mediaService: MediaService) { }
+  constructor(public mediaService: MediaService) { }
 
   private static readonly s3Client = new S3Client({
     region: process.env.AWS_REGION as string,
@@ -49,10 +49,11 @@ export class S3Service {
     });
 
 
-    const signedUrl = await getSignedUrl(S3Service.s3Client, command, { expiresIn, });
-    
+    const signedUrl = await getSignedUrl(StorageService.s3Client, command, { expiresIn, });
 
-    const response = s3Mapper.toPreSignedUrlResponse(signedUrl, fileKey);
+    this.mediaService.createPendingMedia(preSignedUrlDto, fileKey);
+
+    const response = StorageMapper.toPreSignedUrlResponse(signedUrl, fileKey);
 
     return response;
 
