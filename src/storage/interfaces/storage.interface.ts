@@ -4,7 +4,7 @@ import { PreSignedUrlResponse } from "../dto/PreSignedUrlResponse";
 import { GeneratePresignedUrlParams } from "../types/generatePresignedUrlParams";
 
 
-export interface IStorageService {
+export interface IStorageProvider {
 
     s3Client: S3Client;
 

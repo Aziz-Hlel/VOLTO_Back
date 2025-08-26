@@ -64,9 +64,10 @@ enum EntityType {
 
 enum MediaStatus {
   PENDING
-  UPLOADED
+  CONFIRMED
   FAILED
 }
+
 
 model Media {
   s3Key        String      @id
@@ -80,8 +81,8 @@ model Media {
   entityId     String?
   mediaPurpose String? // 'avatar', 'gallery', 'thumbnail'
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   confirmedAt DateTime?
 
   @@unique([entityType, entityId, mediaPurpose])
@@ -95,12 +96,13 @@ enum EventType {
 }
 
 model Event {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   name          String
+  type          EventType
   description   String?
   startDate     DateTime
   endDate       DateTime
-  isLadiesNight Boolean  @default(false)
+  isLadiesNight Boolean   @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

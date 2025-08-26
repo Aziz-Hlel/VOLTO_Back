@@ -25,11 +25,12 @@ export const envSchema = z.object({
     AWS_SECRET_ACCESS_KEY: z.string(),
     AWS_S3_BUCKET: z.string(),
     
-    MINIO_ENDPOINT: z.string().optional(),
-    MINIO_PORT: z.coerce.number().optional(),
+    MINIO_Region: z.string().optional(),
     MINIO_ACCESS_KEY: z.string().optional(),
     MINIO_SECRET_KEY: z.string().optional(),
-    MINIO_Region: z.string().optional(),
+    MINIO_BUCKET: z.string().optional(),
+    MINIO_ENDPOINT: z.string().optional(),
+    MINIO_PORT: z.coerce.number().optional(),
 
 });
 

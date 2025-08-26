@@ -4,17 +4,18 @@ import { CreateS3Dto } from './dto/create-s3.dto';
 import { UpdateS3Dto } from './dto/update-s3.dto';
 import { PreSignedUrlRequest } from './dto/preSignedUrl.dto';
 import { AuthGuard } from 'src/auth/guards/jwt.guard';
+import { PreSignedUrlResponse } from './dto/PreSignedUrlResponse';
 
-@Controller('s3')
+@Controller('storage')
 export class StorageController {
-  constructor(private readonly s3Service: StorageService) { }
+  constructor(private readonly storageService: StorageService) { }
 
-  @Post()
+  @Post('presigned-url')
   @HttpCode(200)
   @UseGuards(AuthGuard)
-  async getPresignedUrl(@Body() preSignedUrlDto: PreSignedUrlRequest) {
+  async getPresignedUrl(@Body() preSignedUrlDto: PreSignedUrlRequest): Promise<PreSignedUrlResponse> {
 
-    const response = await this.s3Service.getPresignedUrl(preSignedUrlDto);
+    const response = await this.storageService.getPresignedUrl(preSignedUrlDto);
 
     return response;
   }
@@ -22,26 +23,26 @@ export class StorageController {
 
   @Post()
   create(@Body() createS3Dto: CreateS3Dto) {
-    return this.s3Service.create(createS3Dto);
+    return this.storageService.create(createS3Dto);
   }
 
   @Get()
   findAll() {
-    return this.s3Service.findAll();
+    return this.storageService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.s3Service.findOne(+id);
+    return this.storageService.findOne(+id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateS3Dto: UpdateS3Dto) {
-    return this.s3Service.update(+id, updateS3Dto);
+    return this.storageService.update(+id, updateS3Dto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.s3Service.remove(+id);
+    return this.storageService.remove(+id);
   }
 }

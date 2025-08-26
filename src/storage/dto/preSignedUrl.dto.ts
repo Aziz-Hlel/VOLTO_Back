@@ -1,4 +1,4 @@
-import { IsEnum, IsPositive, IsString, Max, MinLength } from "class-validator";
+import { IsEnum, IsOptional, IsPositive, IsString, Max, MinLength } from "class-validator";
 import { EntityType } from "generated/prisma";
 
 export const FileType = {
@@ -36,7 +36,9 @@ export class PreSignedUrlRequest {
     @IsEnum(EntityType, { message: `entityType must be one of ${Object.values(EntityType).join(', ')}` })
     entityType: EntityType;
 
-
+    @IsOptional() // 👈 important — skips validation if undefined
+    @IsString()
+    @MinLength(2)
     mediaPurpose?: string;
 
 }

@@ -1,7 +1,7 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { PrismaClient } from 'generated/prisma';
+import { Event, PrismaClient } from 'generated/prisma';
 import { MediaService } from 'src/media/media.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -11,8 +11,22 @@ export class EventsService {
   constructor(private prisma: PrismaService, private readonly mediaService: MediaService) { }
 
 
-  create(createEventDto: CreateEventDto) {
-    return 'This action adds a new event';
+  async create(createEventDto: CreateEventDto) {
+
+    const createdEvent: Event = await this.prisma.event.create({
+      data: {
+        ...createEventDto,
+        isLadiesNight: false,
+      }
+    });
+
+    const confirmThumbnail = this.mediaService.confirmPendingMedia(createEventDto.thumbnailKey, createdEvent.id)
+    const confirmVideo = this.mediaService.confirmPendingMedia(createEventDto.videoKey, createdEvent.id)
+
+    await Promise.all([confirmThumbnail, confirmVideo]);
+
+    return createdEvent;
+
   }
 
   findAll() {

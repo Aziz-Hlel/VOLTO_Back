@@ -9,20 +9,19 @@ import ENV from 'src/config/env';
 import path from 'path';
 import { StorageMapper } from './mapper/StorageMapper';
 import { MediaService } from 'src/media/media.service';
+import { IStorageProvider as IStorageProvider } from './interfaces/storage.interface';
+import { createStorageProvider } from './factory';
 
 @Injectable()
 export class StorageService {
 
-  constructor(public mediaService: MediaService) { }
+  storageService: IStorageProvider;
 
-  private static readonly s3Client = new S3Client({
-    region: process.env.AWS_REGION as string,
-    credentials: {
-      accessKeyId: ENV.AWS_ACCESS_KEY_ID,
-      secretAccessKey: ENV.AWS_SECRET_ACCESS_KEY,
-    },
+  constructor(public mediaService: MediaService) {
+    this.storageService = createStorageProvider();
+  }
 
-  });
+
 
 
   generateFileKey(fileName: string): string {
@@ -38,18 +37,11 @@ export class StorageService {
   async getPresignedUrl(preSignedUrlDto: PreSignedUrlRequest) {
 
     const fileKey = this.generateFileKey(preSignedUrlDto.originalName);
-    const fileType = preSignedUrlDto.fileType;
+    const mimeType = preSignedUrlDto.mimeType;
     const expiresIn = 3600;
 
-    const command = new PutObjectCommand({
-      Bucket: ENV.AWS_S3_BUCKET,
-      Key: fileKey,
-      ContentType: fileType,
-      ContentDisposition: 'attachment', // Security: prevent content-type switching
-    });
 
-
-    const signedUrl = await getSignedUrl(StorageService.s3Client, command, { expiresIn, });
+    const signedUrl = await this.storageService.generatePresignedUrl({ fileKey, mimeType, expiresIn });
 
     this.mediaService.createPendingMedia(preSignedUrlDto, fileKey);
 

@@ -1,13 +1,12 @@
-import { S3Client } from "@aws-sdk/client-s3";
-import { FileType, PreSignedUrlRequest } from "./dto/preSignedUrl.dto";
-import { PreSignedUrlResponse } from "./dto/PreSignedUrlResponse";
-import { IStorageService } from "./interfaces/storage.interface";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { IStorageProvider } from "./interfaces/storage.interface";
 import ENV from "src/config/env";
 import { GeneratePresignedUrlParams } from "./types/generatePresignedUrlParams";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 
 
-export class MinioStorageService implements IStorageService {
+export class MinioStorage implements IStorageProvider {
 
     readonly s3Client = new S3Client({
         region: ENV.MINIO_Region!,
@@ -20,8 +19,19 @@ export class MinioStorageService implements IStorageService {
 
     });
 
-    async generatePresignedUrl({ fileKey, fileType }: GeneratePresignedUrlParams): Promise<string> {
-        throw new Error("Method not implemented.");
+    async generatePresignedUrl({ fileKey, mimeType, expiresIn }: GeneratePresignedUrlParams): Promise<string> {
+
+
+        const command = new PutObjectCommand({
+            Bucket: ENV.MINIO_BUCKET!,
+            Key: fileKey,
+            ContentType: mimeType,
+            // ContentDisposition: 'attachment', // Security: prevent content-type switching
+        });
+
+        const signedUrl = await getSignedUrl(this.s3Client, command, { expiresIn, });
+
+        return signedUrl;
     }
 
 
