@@ -5,9 +5,10 @@ import { MediaService } from 'src/media/media.service';
 import { MediaModule } from 'src/media/media.module';
 
 @Module({
-  imports: [MediaModule],
+  imports: [],
   controllers: [StorageController],
   providers: [StorageService],
+  exports: [StorageService]
 
 })
 export class StorageModule { }

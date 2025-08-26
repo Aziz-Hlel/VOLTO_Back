@@ -1,5 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, UseGuards } from '@nestjs/common';
 import { MediaService } from './media.service';
+import { AuthGuard } from '@nestjs/passport';
+import { PreSignedUrlRequest } from 'src/storage/dto/preSignedUrl.dto';
+import { PreSignedUrlResponse } from 'src/storage/dto/PreSignedUrlResponse';
 
 
 
@@ -8,6 +11,15 @@ export class MediaController {
   constructor(private readonly mediaService: MediaService) { }
 
 
+  @Post('presigned-url')
+  @HttpCode(200)
+  @UseGuards(AuthGuard)
+  async getPresignedUrl(@Body() preSignedUrlDto: PreSignedUrlRequest): Promise<PreSignedUrlResponse> {
+
+    const response = await this.mediaService.getPresignedUrl(preSignedUrlDto);
+
+    return response;
+  }
 
   @Get()
   findAll() {

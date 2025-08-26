@@ -3,12 +3,8 @@ import { CreateS3Dto } from './dto/create-s3.dto';
 import { UpdateS3Dto } from './dto/update-s3.dto';
 import { PreSignedUrlRequest } from './dto/preSignedUrl.dto';
 
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import ENV from 'src/config/env';
 import path from 'path';
-import { StorageMapper } from './mapper/StorageMapper';
-import { MediaService } from 'src/media/media.service';
 import { IStorageProvider as IStorageProvider } from './interfaces/storage.interface';
 import { createStorageProvider } from './factory';
 
@@ -17,7 +13,7 @@ export class StorageService {
 
   storageService: IStorageProvider;
 
-  constructor(public mediaService: MediaService) {
+  constructor() {
     this.storageService = createStorageProvider();
   }
 
@@ -43,12 +39,15 @@ export class StorageService {
 
     const signedUrl = await this.storageService.generatePresignedUrl({ fileKey, mimeType, expiresIn });
 
-    this.mediaService.createPendingMedia(preSignedUrlDto, fileKey);
 
-    const response = StorageMapper.toPreSignedUrlResponse(signedUrl, fileKey);
+    return { signedUrl, fileKey };
 
-    return response;
+  }
 
+
+  async getObjectUrl(fileKey: string): Promise<string> {
+    const objectUrl = `https://${ENV.AWS_S3_BUCKET}.s3.${ENV.AWS_REGION}.amazonaws.com/${fileKey}`;
+    return objectUrl;
   }
 
 

@@ -10,15 +10,15 @@ import { PreSignedUrlResponse } from './dto/PreSignedUrlResponse';
 export class StorageController {
   constructor(private readonly storageService: StorageService) { }
 
-  @Post('presigned-url')
-  @HttpCode(200)
-  @UseGuards(AuthGuard)
-  async getPresignedUrl(@Body() preSignedUrlDto: PreSignedUrlRequest): Promise<PreSignedUrlResponse> {
+  // @Post('presigned-url')
+  // @HttpCode(200)
+  // @UseGuards(AuthGuard)
+  // async getPresignedUrl(@Body() preSignedUrlDto: PreSignedUrlRequest): Promise<PreSignedUrlResponse> {
 
-    const response = await this.storageService.getPresignedUrl(preSignedUrlDto);
+  //   const response = await this.storageService.getPresignedUrl(preSignedUrlDto);
 
-    return response;
-  }
+  //   return response;
+  // }
 
 
   @Post()
