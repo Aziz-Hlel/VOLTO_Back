@@ -3,10 +3,17 @@ import { IStorageProvider } from "./interfaces/storage.interface";
 import ENV from "src/config/env";
 import { GeneratePresignedUrlParams } from "./types/generatePresignedUrlParams";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Injectable } from "@nestjs/common";
 
 
-
+@Injectable()
 export class MinioStorage implements IStorageProvider {
+
+
+    constructor() {
+        // if (ENV.NODE_ENV !== 'development')
+        //     throw new Error('MinioStorageService can only be used in development environment');
+    }
 
     readonly s3Client = new S3Client({
         region: ENV.MINIO_Region!,

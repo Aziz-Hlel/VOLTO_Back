@@ -6,8 +6,6 @@ import { UsersModule } from 'src/users/users.module';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { JwtRefreshStrategy } from './strategy/jwt-refresh.strategy';
 import { PassportModule } from '@nestjs/passport';
-import { APP_GUARD } from '@nestjs/core';
-import { AuthGuard } from './guards/jwt.guard';
 import { RolesGuard } from './guards/roles.guard';
 
 @Module({
@@ -17,6 +15,14 @@ import { RolesGuard } from './guards/roles.guard';
     UsersModule,
   ],
   providers: [AuthService, JwtStrategy, JwtRefreshStrategy, RolesGuard,],
-  controllers: [AuthController]
+  controllers: [AuthController],
+  exports: [
+    AuthService,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    RolesGuard, // 👈 export guards so other modules can use them
+    PassportModule, // 👈 export PassportModule so `AuthGuard()` works elsewhere
+    JwtModule,      // 👈 export JwtModule so you don’t need to re-import it
+  ]
 })
 export class AuthModule { }

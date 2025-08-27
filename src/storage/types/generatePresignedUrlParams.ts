@@ -1,4 +1,3 @@
-import { FileType } from "../dto/preSignedUrl.dto"
 
 
 export type GeneratePresignedUrlParams = {

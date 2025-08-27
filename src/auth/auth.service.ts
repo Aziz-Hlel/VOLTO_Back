@@ -1,6 +1,6 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {  Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaClient, Role, User } from 'generated/prisma';
+import {  User } from 'generated/prisma';
 import { UsersService } from 'src/users/users.service';
 
 import * as bcrypt from 'bcrypt';
@@ -8,7 +8,6 @@ import { CreateUserDto } from '../users/Dto/create-user';
 import { UserMapper } from 'src/users/Mapper/usersMapper';
 import { AuthUser } from 'src/users/Dto/AuthUser';
 import { UserResponseDto } from 'src/users/Dto/userResponse';
-import { Roles } from './decorators/roles.decorator';
 import ENV from 'src/config/env';
 
 @Injectable()

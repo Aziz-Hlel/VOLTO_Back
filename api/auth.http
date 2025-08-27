@@ -1,0 +1,36 @@
+
+
+@baseUrl = http://localhost:3000/api
+
+############################
+### Register a new user
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+    "username":"test",
+    "email":"test2@test.test",
+    "phoneNumber":"80000000",
+    "gender":"M",
+    "password":"123456"
+}
+
+# @access_token = {{register.response.body.$.access_token}}
+
+### Login request
+### Step 1: Get access token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "test@test.test",
+    "password": "12345"
+}
+
+### Get current user (uses token from login)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+

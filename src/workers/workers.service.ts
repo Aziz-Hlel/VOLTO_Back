@@ -1,5 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { PrismaClient } from 'generated/prisma';
+import {  Injectable } from '@nestjs/common';
 import { CreateWorkerDto } from './dto/create-worker.dto';
 import { WorkerMapper } from './mappers/worker.mapper';
 import { WorkerResponseDto } from './dto/WorkerResponseDto';

@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
-import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import ENV from './config/env';
 
@@ -14,8 +13,9 @@ const gloabalValidationPipe = new ValidationPipe({
 });
 
 async function bootstrap() {
+
   const app = await NestFactory.create(AppModule);
-  const configService = app.get(ConfigService);
+  // const configService = app.get(ConfigService);
 
 
   const PORT = ENV.PORT;

@@ -1,24 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, UseGuards, } from '@nestjs/common';
 import { StorageService } from './storage.service';
 import { CreateS3Dto } from './dto/create-s3.dto';
 import { UpdateS3Dto } from './dto/update-s3.dto';
 import { PreSignedUrlRequest } from './dto/preSignedUrl.dto';
-import { AuthGuard } from 'src/auth/guards/jwt.guard';
-import { PreSignedUrlResponse } from './dto/PreSignedUrlResponse';
+import { JwtAccessGuard } from 'src/auth/guards/jwt.guard';
+
 
 @Controller('storage')
 export class StorageController {
   constructor(private readonly storageService: StorageService) { }
 
-  // @Post('presigned-url')
-  // @HttpCode(200)
-  // @UseGuards(AuthGuard)
-  // async getPresignedUrl(@Body() preSignedUrlDto: PreSignedUrlRequest): Promise<PreSignedUrlResponse> {
+  @Post('presigned-url')
+  @HttpCode(200)
+  @UseGuards(JwtAccessGuard)
+  async getPresignedUrl(@Body() preSignedUrlDto: PreSignedUrlRequest) {
 
-  //   const response = await this.storageService.getPresignedUrl(preSignedUrlDto);
+    const response = await this.storageService.getPresignedUrl(preSignedUrlDto);
 
-  //   return response;
-  // }
+    return response;
+  }
 
 
   @Post()

@@ -1,6 +1,4 @@
 import { S3Client } from "@aws-sdk/client-s3";
-import { FileType, PreSignedUrlRequest } from "../dto/preSignedUrl.dto";
-import { PreSignedUrlResponse } from "../dto/PreSignedUrlResponse";
 import { GeneratePresignedUrlParams } from "../types/generatePresignedUrlParams";
 
 

@@ -1,16 +1,15 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Media, MediaStatus, PrismaClient } from 'generated/prisma';
+import {  Injectable, NotFoundException } from '@nestjs/common';
+import { Media, MediaStatus, } from 'generated/prisma';
 import { MediaIdentifier } from './types/MediaIndetifier';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PreSignedUrlRequest } from 'src/storage/dto/preSignedUrl.dto';
 import { StorageService } from 'src/storage/storage.service';
-import path from 'path';
 import { StorageMapper } from 'src/storage/mapper/StorageMapper';
 
 @Injectable()
 export class MediaService {
 
-  constructor(private prisma: PrismaService, private readonly storageService: StorageService) { }
+  constructor(private prisma: PrismaService, private storageService: StorageService) { }
 
   async createPendingMedia(preSignedUrlDto: PreSignedUrlRequest, fileKey: string) {
     const createdMedia = await this.prisma.media.create({
@@ -43,15 +42,17 @@ export class MediaService {
 
 
   async confirmPendingMedia(s3Key: string, entityId: string) {
-    const media = await this.prisma.media.findFirst({
+    const media = await this.prisma.media.findUnique({
       where: {
         s3Key,
-        status: MediaStatus.PENDING,
       }
     });
 
     if (!media)
       throw new NotFoundException(`Media with s3Key ${s3Key} not found`);
+
+    if (media.status !== MediaStatus.PENDING)
+      throw new Error(` try to CONFIRM Media with s3Key ${s3Key} which is not in PENDING status`);
 
     await this.prisma.media.update({
       where: {

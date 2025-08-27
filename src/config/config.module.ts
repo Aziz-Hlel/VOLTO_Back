@@ -1,7 +1,6 @@
 // src/config/config.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import Joi from 'joi';
 import z from 'zod';
 
 export const envSchema = z.object({

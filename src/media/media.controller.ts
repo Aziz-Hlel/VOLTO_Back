@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, HttpCode, UseGuards } from '@nestjs/common';
 import { MediaService } from './media.service';
 import { AuthGuard } from '@nestjs/passport';
 import { PreSignedUrlRequest } from 'src/storage/dto/preSignedUrl.dto';
@@ -8,7 +8,7 @@ import { PreSignedUrlResponse } from 'src/storage/dto/PreSignedUrlResponse';
 
 @Controller('media')
 export class MediaController {
-  constructor(private readonly mediaService: MediaService) { }
+  constructor(private  mediaService: MediaService) { }
 
 
   @Post('presigned-url')

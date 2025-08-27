@@ -1,0 +1,22 @@
+
+
+@baseUrl = http://localhost:3000/api
+
+
+
+
+
+### Register a new user
+# @name getPresignedUrl
+POST {{baseUrl}}/media/presigned-url
+Content-Type: application/json
+
+{
+  "mimeType": "image/png",
+  "fileSize": 524288, 
+  "fileType": ".png",
+  "originalName": "waiter Tailand.png",
+  "entityType": "PRODUCT", 
+  "mediaPurpose": "profile picture"
+}
+

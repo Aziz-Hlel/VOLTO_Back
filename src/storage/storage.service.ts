@@ -1,21 +1,17 @@
-import { Body, HttpCode, Injectable } from '@nestjs/common';
+import { Body, HttpCode, Inject, Injectable } from '@nestjs/common';
 import { CreateS3Dto } from './dto/create-s3.dto';
 import { UpdateS3Dto } from './dto/update-s3.dto';
 import { PreSignedUrlRequest } from './dto/preSignedUrl.dto';
 
 import ENV from 'src/config/env';
 import path from 'path';
-import { IStorageProvider as IStorageProvider } from './interfaces/storage.interface';
-import { createStorageProvider } from './factory';
+import type { IStorageProvider } from './interfaces/storage.interface';
 
 @Injectable()
 export class StorageService {
 
-  storageService: IStorageProvider;
 
-  constructor() {
-    this.storageService = createStorageProvider();
-  }
+  constructor(@Inject('STORAGE_SERVICE') private readonly storageService: IStorageProvider,) { }
 
 
 
