@@ -1,5 +1,5 @@
+import { Gender } from "@prisma/client";
 import { IsEnum, IsInt, IsOptional, IsPositive, IsString, Matches, Max, MaxLength, MinLength } from "class-validator";
-import { Gender } from "generated/prisma";
 
 
 export class CreateUserDto {

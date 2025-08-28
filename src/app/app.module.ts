@@ -7,10 +7,12 @@ import { AuthModule } from 'src/auth/auth.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { StorageModule } from 'src/storage/storage.module';
 import { UsersModule } from 'src/users/users.module';
+import { MediaModule } from 'src/media/media.module';
+import { EventsModule } from 'src/events/events.module';
 
 
 @Module({
-  imports: [AppConfigModule, PrismaModule, UsersModule, AuthModule, WorkersModule, StorageModule,],
+  imports: [AppConfigModule, PrismaModule, UsersModule, AuthModule, WorkersModule, StorageModule, MediaModule, EventsModule],
   controllers: [AppController],
   providers: [AppService],
 })

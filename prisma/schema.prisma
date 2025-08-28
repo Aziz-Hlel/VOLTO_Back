@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -67,7 +66,6 @@ enum MediaStatus {
   CONFIRMED
   FAILED
 }
-
 
 model Media {
   s3Key        String      @id

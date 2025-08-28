@@ -4,19 +4,101 @@
 
 
 
-
-
+############################
 ### Register a new user
-# @name getPresignedUrl
-POST {{baseUrl}}/media/presigned-url
+# @name register
+POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-  "mimeType": "image/png",
-  "fileSize": 524288, 
-  "fileType": ".png",
-  "originalName": "waiter Tailand.png",
-  "entityType": "PRODUCT", 
-  "mediaPurpose": "profile picture"
+    "username":"test",
+    "email":"test@test.test",
+    "phoneNumber":"80000000",
+    "gender":"M",
+    "password":"123456"
 }
+
+
+
+### Login request
+### Step 1: Get access token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "test@test.test",
+    "password": "123456"
+}
+
+
+### Get presigned url for the thumbnail
+# @name getPresignedUrl
+POST {{baseUrl}}/media/presigned-url
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+{
+    "mimeType": "image/jpeg",
+    "fileSize": 136877,
+    "fileType": ".jpg",
+    "originalName": "img.jpg",
+    "entityType": "EVENT",
+    "mediaPurpose": "thumbnail"
+}
+
+
+### Get presigned url for the video
+# @name getPresignedUrl2
+POST {{baseUrl}}/media/presigned-url
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+{
+    "mimeType": "image/jpeg",
+    "fileSize": 136877,
+    "fileType": ".jpg",
+    "originalName": "img.jpg",
+    "entityType": "EVENT",
+    "mediaPurpose": "video"
+}
+
+
+### Register a new user
+# @name uploadFile
+PUT {{getPresignedUrl.response.body.url}}
+Content-Type: image/jpeg
+
+< ./assets/img.jpg
+
+
+
+### Register a new user
+# @name createEvent
+POST  {{baseUrl}}/events
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+{
+    "name": "Test Event2",
+    "type": "WEEKLY",
+    "description": "This is a test event",
+    "startDate": "2025-08-01T00:00:00.000Z",
+    "endDate": "2025-08-31T23:59:59.999Z",
+    "thumbnailKey": "{{getPresignedUrl.response.body.s3Key}}",
+    "videoKey": "{{getPresignedUrl2.response.body.s3Key}}"
+}
+
+
+
+
+
+### Register a new user
+# @name getEvent
+GET   {{baseUrl}}/events/{{createEvent.response.body.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+
+
 

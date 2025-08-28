@@ -1,4 +1,4 @@
-import { EntityType } from "generated/prisma";
+import { EntityType } from "@prisma/client";
 
 
 export type MediaIdentifier = {

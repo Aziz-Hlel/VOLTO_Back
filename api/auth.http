@@ -10,7 +10,7 @@ Content-Type: application/json
 
 {
     "username":"test",
-    "email":"test2@test.test",
+    "email":"test@test.test",
     "phoneNumber":"80000000",
     "gender":"M",
     "password":"123456"
@@ -31,6 +31,6 @@ Content-Type: application/json
 
 ### Get current user (uses token from login)
 GET {{baseUrl}}/auth/me
-Authorization: Bearer {{login.response.body.$.accessToken}}
+Authorization: Bearer {{login.response.body.accessToken}}
 
 

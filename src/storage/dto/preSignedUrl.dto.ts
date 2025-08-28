@@ -1,6 +1,6 @@
 import { IsEnum, IsOptional, IsPositive, IsString, Max, MinLength } from "class-validator";
-import { EntityType } from "generated/prisma";
 import { FileType } from "../types/fileType";
+import { EntityType } from "@prisma/client";
 
 
 export class PreSignedUrlRequest {

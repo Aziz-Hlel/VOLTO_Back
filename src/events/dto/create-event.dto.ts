@@ -1,5 +1,6 @@
+import { EventType } from "@prisma/client";
+import { Type } from "class-transformer";
 import { IsBoolean, IsDate, IsEnum, IsOptional, IsString } from "class-validator";
-import { EventType } from "generated/prisma";
 
 export class CreateEventDto {
 
@@ -13,9 +14,11 @@ export class CreateEventDto {
     @IsString()
     description: string;
 
+    @Type(() => Date)
     @IsDate()
     startDate: Date;
 
+    @Type(() => Date)
     @IsDate()
     endDate: Date;
 

@@ -42,7 +42,13 @@ export class StorageService {
 
 
   async getObjectUrl(fileKey: string): Promise<string> {
-    const objectUrl = `https://${ENV.AWS_S3_BUCKET}.s3.${ENV.AWS_REGION}.amazonaws.com/${fileKey}`;
+    let objectUrl = '';
+    if (ENV.NODE_ENV === 'development' || ENV.NODE_ENV === 'test') {
+      objectUrl = `http://localhost:${ENV.MINIO_PORT}/${ENV.MINIO_BUCKET}/${fileKey}`
+    }
+    else
+      objectUrl = `https://${ENV.AWS_S3_BUCKET}.s3.${ENV.AWS_REGION}.amazonaws.com/${fileKey}`;
+
     return objectUrl;
   }
 

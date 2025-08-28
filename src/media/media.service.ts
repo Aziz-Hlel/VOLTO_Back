@@ -1,10 +1,10 @@
 import {  Injectable, NotFoundException } from '@nestjs/common';
-import { Media, MediaStatus, } from 'generated/prisma';
 import { MediaIdentifier } from './types/MediaIndetifier';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PreSignedUrlRequest } from 'src/storage/dto/preSignedUrl.dto';
 import { StorageService } from 'src/storage/storage.service';
 import { StorageMapper } from 'src/storage/mapper/StorageMapper';
+import { Media, MediaStatus } from '@prisma/client';
 
 @Injectable()
 export class MediaService {

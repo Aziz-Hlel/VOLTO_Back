@@ -1,4 +1,4 @@
-import { Gender, Role, Tier } from "generated/prisma";
+import { Gender, Role, Tier } from "@prisma/client";
 
 
 export class UserResponseDto {

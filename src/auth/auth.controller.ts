@@ -6,9 +6,9 @@ import { JwtAccessGuard } from './guards/jwt.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthUser } from 'src/users/Dto/AuthUser';
 import { Roles } from './decorators/roles.decorator';
-import { Role } from 'generated/prisma';
 import { RolesGuard } from './guards/roles.guard';
 import { LoginRequestDto } from './dto/loginRequestDto';
+import { Role } from '@prisma/client';
 
 @Controller('auth')
 export class AuthController {

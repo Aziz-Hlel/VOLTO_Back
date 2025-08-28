@@ -17,7 +17,7 @@ export class MinioStorage implements IStorageProvider {
 
     readonly s3Client = new S3Client({
         region: ENV.MINIO_Region!,
-        endpoint: ENV.MINIO_ENDPOINT!,
+        endpoint: `http://localhost:${ENV.MINIO_PORT!}/`,
         credentials: {
             accessKeyId: ENV.MINIO_ACCESS_KEY!,
             secretAccessKey: ENV.MINIO_SECRET_KEY!,

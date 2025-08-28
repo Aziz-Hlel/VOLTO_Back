@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Param, Delete, HttpCode, UseGuards } from '@nestjs/common';
 import { MediaService } from './media.service';
-import { AuthGuard } from '@nestjs/passport';
 import { PreSignedUrlRequest } from 'src/storage/dto/preSignedUrl.dto';
 import { PreSignedUrlResponse } from 'src/storage/dto/PreSignedUrlResponse';
+import { JwtAccessGuard } from 'src/auth/guards/jwt.guard';
 
 
 
@@ -13,7 +13,7 @@ export class MediaController {
 
   @Post('presigned-url')
   @HttpCode(200)
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAccessGuard)
   async getPresignedUrl(@Body() preSignedUrlDto: PreSignedUrlRequest): Promise<PreSignedUrlResponse> {
 
     const response = await this.mediaService.getPresignedUrl(preSignedUrlDto);

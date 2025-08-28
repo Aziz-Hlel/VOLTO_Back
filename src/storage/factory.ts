@@ -6,12 +6,10 @@ import { MinioStorage } from "./minioStorage.service";
 
 
 export function createStorageProvider(): IStorageProvider {
-    if (ENV.NODE_ENV === "development") {
+    if (ENV.NODE_ENV === "development" || ENV.NODE_ENV === "test") {
         return new MinioStorage();
     }
-    if (ENV.NODE_ENV === "production" || ENV.NODE_ENV === "stage") {
-        return new AwsS3Storage();
-    }
+  
     return new MinioStorage();
     throw new Error(`Unsupported StorageProvider for NODE_ENV: ${ENV.NODE_ENV}`);
 }
