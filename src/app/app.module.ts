@@ -11,6 +11,7 @@ import { MediaModule } from 'src/media/media.module';
 import { EventsModule } from 'src/events/events.module';
 import { LadiesNightModule } from 'src/ladies-night/ladies-night.module';
 import { RedisModule } from 'src/redis/redis.module';
+import { BullmqModule } from 'src/bullmq/bullmq.module';
 
 
 @Module({
@@ -24,7 +25,8 @@ import { RedisModule } from 'src/redis/redis.module';
     StorageModule,
     MediaModule,
     EventsModule,
-    LadiesNightModule
+    LadiesNightModule,
+    BullmqModule
   ],
 
   controllers: [AppController],

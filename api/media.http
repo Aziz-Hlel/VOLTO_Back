@@ -47,7 +47,7 @@ Authorization: Bearer {{login.response.body.accessToken}}
     "mediaPurpose": "thumbnail"
 }
 
-
+ 
 ### Get presigned url for the video
 # @name getPresignedUrl2
 POST {{baseUrl}}/media/presigned-url
@@ -64,7 +64,7 @@ Authorization: Bearer {{login.response.body.accessToken}}
 }
 
 
-### Register a new user
+### Upload the thumbnail into S3
 # @name uploadFile
 PUT {{getPresignedUrl.response.body.url}}
 Content-Type: image/jpeg
@@ -73,18 +73,27 @@ Content-Type: image/jpeg
 
 
 
-### Register a new user
+### Register the video into S3
+# @name uploadFile
+PUT {{getPresignedUrl2.response.body.url}}
+Content-Type: image/jpeg
+
+< ./assets/img.jpg
+
+
+
+### Create Event
 # @name createEvent
 POST  {{baseUrl}}/events
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.accessToken}}
 
 {
-    "name": "Test Event2",
+    "name": "Ladies Night",
     "type": "WEEKLY",
-    "description": "This is a test event",
-    "startDate": "2025-08-01T00:00:00.000Z",
-    "endDate": "2025-08-31T23:59:59.999Z",
+    "description": "This is a test event for ladies night",
+    "startDate": "2025-08-01T00:19:00.000Z",
+    "endDate": "2025-08-02T00:05:00.999Z",
     "thumbnailKey": "{{getPresignedUrl.response.body.s3Key}}",
     "videoKey": "{{getPresignedUrl2.response.body.s3Key}}"
 }

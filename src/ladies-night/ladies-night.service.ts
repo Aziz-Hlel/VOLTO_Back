@@ -9,42 +9,54 @@ export class LadiesNightService {
     constructor(private prisma: PrismaService, @Inject('REDIS_CLIENT') private readonly redis: Redis,) { }
 
     static DRINK_QUOTA = 3;
+    static msInHours = 1000 * 60 * 60;
 
 
+    async isLadiesNightActive(): Promise<boolean> {
+
+        const [strStartDate, strEndDate] = await this.redis.hmget(
+            HASHES.LADIES_NIGHT.DATE.HASH(),
+            HASHES.LADIES_NIGHT.DATE.START_DATE(),
+            HASHES.LADIES_NIGHT.DATE.END_DATE()
+        );
+
+        if (!strStartDate || !strEndDate) return false;
+
+        const startDate = new Date(strStartDate);
+        const endDate = new Date(strEndDate);
+
+        const diffrenceInMs = endDate.getTime() - startDate.getTime();
+        const diffrenceInHours = diffrenceInMs / LadiesNightService.msInHours;
+
+        
 
 
-    async getQrCode(userId: string) {
-        const token = await this.redis.hget(HASHES.LADIES_NIGHT.USER_TO_CODE(), userId);
+        return true;
+    }
 
-        return token;
+    async updateSavedUserSocketId(userId: string, socketId: string) {
+        this.redis.hset(HASHES.LADIES_NIGHT.USER.HASH(userId), HASHES.LADIES_NIGHT.USER.SOCKET_ID(), socketId);
     }
 
 
-    async getUserRemainingDrinks(userId: string): Promise<number> {
+    async getDrinkQuota(): Promise<{ quota: number, exp: number }> {
 
-        const remainingDrinks = await this.redis.hget(HASHES.LADIES_NIGHT.USER_DRINKS_CONSUMED(userId), "user_drinks_consumed");
-
-        if (!remainingDrinks || !isNaN(Number(remainingDrinks))) return LadiesNightService.DRINK_QUOTA;
-
-        if (Number(remainingDrinks) > LadiesNightService.DRINK_QUOTA) return 0;
-
-        const nbrRemainingDrinks = LadiesNightService.DRINK_QUOTA - Number(remainingDrinks)
-
-        return nbrRemainingDrinks;
-
+        return {
+            quota: LadiesNightService.DRINK_QUOTA,
+            exp: Date.now() + 1000,
+        }
     };
-
-
 
     async getUserDrinksConsumed(userId: string): Promise<number> {
 
-        const remainingDrinks = await this.redis.hget(HASHES.LADIES_NIGHT.USER_DRINKS_CONSUMED(userId), "user_drinks_consumed");
+        const remainingDrinks = await this.redis.hget(HASHES.LADIES_NIGHT.USER.HASH(userId), HASHES.LADIES_NIGHT.USER.USER_DRINKS_CONSUMED());
 
         if (!remainingDrinks || !isNaN(Number(remainingDrinks))) return 0;
 
         if (Number(remainingDrinks) > LadiesNightService.DRINK_QUOTA) {
-            // ! add log error here to get notify if this happen because it shouldnt 
-            return LadiesNightService.DRINK_QUOTA;
+            // ! add log error here to get notify if this happen because it shouldnt, instead of throwing an error
+            throw new BadRequestException('No more drinks for this user');
+            // return LadiesNightService.DRINK_QUOTA;
         }
 
 
@@ -54,9 +66,10 @@ export class LadiesNightService {
 
     };
 
+
     async generateCode(): Promise<string> {
 
-        const existingCodes = await this.redis.hkeys(HASHES.LADIES_NIGHT.CODE_TO_USER());
+        const existingCodes = await this.redis.hkeys(HASHES.LADIES_NIGHT.CODES());
         const existingCodesSet = new Set(existingCodes);
         const code = this.generateUniqueCode(existingCodesSet);
 
@@ -67,18 +80,18 @@ export class LadiesNightService {
 
     async getCode(userId: string): Promise<string> {
 
-        const userRemainingDrinks = await this.getUserRemainingDrinks(userId);
+        const userDrinksConsumed = await this.getUserDrinksConsumed(userId);
 
-        if (userRemainingDrinks < 0) throw new BadRequestException('No more drinks for this user');
+        if (userDrinksConsumed > LadiesNightService.DRINK_QUOTA) throw new BadRequestException('No more drinks for this user');
 
-        const existingCode = await this.redis.hget(HASHES.LADIES_NIGHT.USER_TO_CODE(), userId);
+        const existingCode = await this.redis.hget(HASHES.LADIES_NIGHT.USER.HASH(userId), HASHES.LADIES_NIGHT.USER.USER_CODE());
 
         if (existingCode) return existingCode;
 
         const code = await this.generateCode();
 
-        await this.redis.hset(HASHES.LADIES_NIGHT.USER_TO_CODE(), userId, code);
-        await this.redis.hset(HASHES.LADIES_NIGHT.CODE_TO_USER(), code, userId);
+        await this.redis.hset(HASHES.LADIES_NIGHT.USER.HASH(userId), HASHES.LADIES_NIGHT.USER.USER_CODE(), code);
+        await this.redis.hset(HASHES.LADIES_NIGHT.CODES(), code, userId);
 
         return code;
     }
@@ -86,14 +99,35 @@ export class LadiesNightService {
 
 
 
-    async consumeDrink(userId: string) {
+    async consumeDrink(code: string) {
+
+        const userId = await this.redis.hget(HASHES.LADIES_NIGHT.CODES(), code);
+
+        if (!userId) throw new BadRequestException('No user found with this QR code');
+
+        if (userId) throw new BadRequestException('Invalid code');
+
+        const userObject = await this.redis.hgetall(HASHES.LADIES_NIGHT.USER.HASH(userId));
+
+        if (Object.keys(userObject).length === 0) throw new BadRequestException('No user object found with this QR code');
+
 
         const userDrinksConsumed = await this.getUserDrinksConsumed(userId);
 
-        if (userDrinksConsumed > LadiesNightService.DRINK_QUOTA) throw new BadRequestException('No more drinks for this user');
+        if (userDrinksConsumed === LadiesNightService.DRINK_QUOTA) throw new BadRequestException('User exceeded free drinks quota');
 
-        await this.redis.hset(HASHES.LADIES_NIGHT.USER_DRINKS_CONSUMED(userId), "user_drinks_consumed", userDrinksConsumed + 1);
+        await this.redis.hdel(HASHES.LADIES_NIGHT.CODES(), code);
 
+        await this.redis.hdel(HASHES.LADIES_NIGHT.USER.HASH(userId), HASHES.LADIES_NIGHT.USER.USER_CODE());
+
+        await this.redis.hset(HASHES.LADIES_NIGHT.USER.HASH(userId), HASHES.LADIES_NIGHT.USER.USER_DRINKS_CONSUMED(), userDrinksConsumed + 1);
+
+
+        return {
+            userId: userId,
+            userSocketId: userObject[HASHES.LADIES_NIGHT.USER.SOCKET_ID()],
+            userDrinksConsumed: userDrinksConsumed + 1
+        };
 
 
     }

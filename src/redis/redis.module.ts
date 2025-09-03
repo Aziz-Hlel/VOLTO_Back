@@ -12,6 +12,7 @@ import ENV from 'src/config/env';
                 return new Redis({
                     host: ENV.REDIS_HOST,
                     port: ENV.REDIS_PORT,
+                    maxRetriesPerRequest: null
                 });
             },
         },

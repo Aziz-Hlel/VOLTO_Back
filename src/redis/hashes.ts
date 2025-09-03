@@ -14,13 +14,28 @@ export const HASHES3 = {
 
 
 export const HASHES = {
+
     USER_SESSION: (userId: string) => `user:${userId}:session`,
+
     LADIES_NIGHT: {
-        CODE_TO_USER: () => "LADIES_NIGHT:CODE_TO_USER",
-        USER_TO_CODE: () => "LADIES_NIGHT:USER_TO_CODE",
-        USER_DRINKS_CONSUMED: (userId: string) => `ladies_night:${userId}:user_drinks_consumed`,
+
+        USER: {
+            HASH: (userId: string) => `ladies_night:user:${userId}`,
+            USER_DRINKS_CONSUMED: () => "user_drinks_consumed",
+            USER_CODE: () => "user_code",
+            SOCKET_ID: () => "socket_id",
+        },
+
+        CODES: () => "ladies_night:codes",
+
+        DATE: {
+            HASH: () => "ladies_night:date",
+            START_DATE: () => "start_date",
+            END_DATE: () => "end_date",
+        },
+
     },
 
-} as const
+} as const;
 
 export type HASHES3 = keyof typeof HASHES3;
