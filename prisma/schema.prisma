@@ -90,12 +90,12 @@ model Media {
 
 enum EventType {
   WEEKLY
-  MONTHLY
+  SPECIAL
 }
 
 model Event {
   id            String    @id @default(uuid())
-  name          String
+  name          String    @unique
   type          EventType
   description   String?
   startDate     DateTime

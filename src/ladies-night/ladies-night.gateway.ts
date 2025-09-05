@@ -1,5 +1,5 @@
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Logger, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { BadRequestException, Logger, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { WsJwtGuard } from 'src/auth/guards/WsJwtGuard.guard';
 import { LadiesNightService } from './ladies-night.service';
@@ -126,10 +126,11 @@ export class LadiesNightGateway {
   @UseGuards(RolesGuard)
   @Roles(Role.WAITER)
   @SubscribeMessage('consume-drink')
-  async consumeDrink(@ConnectedSocket() socket: authSocket, @MessageBody() message: string) {
+  async consumeDrink(@ConnectedSocket() socket: authSocket, @MessageBody() code: string) {
 
+    if (!code) throw new BadRequestException('No code provided');
 
-    const response = await this.ladiesNightService.consumeDrink(message);
+    const response = await this.ladiesNightService.consumeDrink(code);
 
     socket.emit('drink-consumed', response);
 

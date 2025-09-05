@@ -9,6 +9,7 @@ import { Roles } from './decorators/roles.decorator';
 import { RolesGuard } from './guards/roles.guard';
 import { LoginRequestDto } from './dto/loginRequestDto';
 import { Role } from '@prisma/client';
+import { CreateCustomerDto } from 'src/users/Dto/create-customer';
 
 @Controller('auth')
 export class AuthController {
@@ -16,9 +17,19 @@ export class AuthController {
 
     @HttpCode(201)
     @Post('register')
-    async register(@Body() dto: CreateUserDto) {
+    async registerCustomer(@Body() dto: CreateCustomerDto) {
 
-        const payload = await this.authService.register(dto);
+        const payload = await this.authService.registerCustomer(dto);
+
+        return payload;
+    }
+
+    @UseGuards(JwtAccessGuard, RolesGuard)
+    @HttpCode(201)
+    @Post('register')
+    async adminRegister(@Body() dto: CreateUserDto) {
+
+        const payload = await this.authService.registerCustomer(dto);
 
         return payload;
     }

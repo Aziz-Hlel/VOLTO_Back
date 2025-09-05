@@ -1,7 +1,9 @@
-import { Injectable,  UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/users/Dto/create-user';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateCustomerDto } from './Dto/create-customer';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -11,24 +13,25 @@ export class UsersService {
     return this.prisma.user.findMany();
   }
 
-  createUser(dto: CreateUserDto, hashedPassword: string) {
+  createCustomer(dto: CreateCustomerDto, hashedPassword: string) {
     return this.prisma.user.create({
       data: {
         ...dto,
+        role: Role.USER,
         password: hashedPassword,
       }
     });
   }
 
 
-  async register(dto: CreateUserDto) {
+  async registerCustomer(dto: CreateCustomerDto) {
 
     const existingUser = await this.findByEmail(dto.email);
 
     if (existingUser) throw new UnauthorizedException('Email already exists');
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const savedUser = await this.createUser(dto, hashedPassword);
+    const savedUser = await this.createCustomer(dto, hashedPassword);
 
     return savedUser
   }

@@ -2,7 +2,7 @@ import { Gender, Role } from "@prisma/client";
 import { IsEnum, IsInt, IsOptional, IsPositive, IsString, Matches, Max, MaxLength, MinLength } from "class-validator";
 
 
-export class CreateUserDto {
+export class CreateCustomerDto {
 
     @IsString()
     @MinLength(2)
@@ -23,11 +23,5 @@ export class CreateUserDto {
 
     @IsEnum(Gender, { message: 'Gender must be either M or F' })
     gender: Gender;
-
-
-    @IsEnum(Role, { message: 'Invalid Role' })
-    role: Role;
-
-
 
 }
