@@ -2,6 +2,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { HASHES, HASHES3 } from 'src/redis/hashes';
+import REDIS_KEYS from 'src/redis/redisKeys';
 
 @Injectable()
 export class LadiesNightService {
@@ -14,28 +15,16 @@ export class LadiesNightService {
 
     async isLadiesNightActive(): Promise<boolean> {
 
-        const [strStartDate, strEndDate] = await this.redis.hmget(
-            HASHES.LADIES_NIGHT.DATE.HASH(),
-            HASHES.LADIES_NIGHT.DATE.START_DATE(),
-            HASHES.LADIES_NIGHT.DATE.END_DATE()
-        );
+        const isLadiesNightActive = await this.redis.get(REDIS_KEYS.isLadiesNightAvailable());
 
-        if (!strStartDate || !strEndDate) return false;
-
-        const startDate = new Date(strStartDate);
-        const endDate = new Date(strEndDate);
-
-        const diffrenceInMs = endDate.getTime() - startDate.getTime();
-        const diffrenceInHours = diffrenceInMs / LadiesNightService.msInHours;
-
-        
-
-
-        return true;
+        return isLadiesNightActive === "1";
     }
 
     async updateSavedUserSocketId(userId: string, socketId: string) {
+
         this.redis.hset(HASHES.LADIES_NIGHT.USER.HASH(userId), HASHES.LADIES_NIGHT.USER.SOCKET_ID(), socketId);
+        await this.redis.expire(HASHES.LADIES_NIGHT.USER.HASH(userId), 3600 * 12);
+
     }
 
 
@@ -46,6 +35,8 @@ export class LadiesNightService {
             exp: Date.now() + 1000,
         }
     };
+
+
 
     async getUserDrinksConsumed(userId: string): Promise<number> {
 
@@ -94,6 +85,7 @@ export class LadiesNightService {
         await this.redis.hset(HASHES.LADIES_NIGHT.CODES(), code, userId);
 
         return code;
+
     }
 
 
@@ -105,12 +97,13 @@ export class LadiesNightService {
 
         if (!userId) throw new BadRequestException('No user found with this QR code');
 
-        if (userId) throw new BadRequestException('Invalid code');
 
-        const userObject = await this.redis.hgetall(HASHES.LADIES_NIGHT.USER.HASH(userId));
+        // const userObject = await this.redis.hgetall(HASHES.LADIES_NIGHT.USER.HASH(userId));
+        // if (Object.keys(userObject).length === 0) throw new BadRequestException('No user object found with this QR code');
 
-        if (Object.keys(userObject).length === 0) throw new BadRequestException('No user object found with this QR code');
+        const userHashExists = await this.redis.exists(HASHES.LADIES_NIGHT.USER.HASH(userId));
 
+        if (!userHashExists) throw new BadRequestException('Invalid code');
 
         const userDrinksConsumed = await this.getUserDrinksConsumed(userId);
 
@@ -123,9 +116,12 @@ export class LadiesNightService {
         await this.redis.hset(HASHES.LADIES_NIGHT.USER.HASH(userId), HASHES.LADIES_NIGHT.USER.USER_DRINKS_CONSUMED(), userDrinksConsumed + 1);
 
 
+        const userSocketId = await this.redis.hget(HASHES.LADIES_NIGHT.USER.HASH(userId), HASHES.LADIES_NIGHT.USER.SOCKET_ID());
+
         return {
+            success: true,
             userId: userId,
-            userSocketId: userObject[HASHES.LADIES_NIGHT.USER.SOCKET_ID()],
+            userSocketId: userSocketId,
             userDrinksConsumed: userDrinksConsumed + 1
         };
 
@@ -133,16 +129,32 @@ export class LadiesNightService {
     }
 
 
+    async getUserQuota(userId: string) {
+
+        const drinksConsumed = await this.getUserDrinksConsumed(userId);
+
+        const { quota, exp } = await this.getDrinkQuota();
+
+        const code = await this.getCode(userId);
+
+        return {
+            drinksConsumed,
+            code,
+            quota,
+            exp
+        };
+    }
 
 
 
-    generateUniqueCode(existingCodes: Set<string>, length = 6): string {
+    generateUniqueCode(existingCodes: Set<string>): string {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const codeLength = 6;
 
         let code: string;
 
         do {
-            code = Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+            code = Array.from({ length: codeLength }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
         } while (existingCodes.has(code));
 
         return code;

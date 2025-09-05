@@ -1,23 +1,95 @@
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { UseGuards } from '@nestjs/common';
+import { Logger, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { WsJwtGuard } from 'src/auth/guards/WsJwtGuard.guard';
 import { LadiesNightService } from './ladies-night.service';
 import type { authSocket } from 'src/events/types/authSocket';
+import { JwtService } from '@nestjs/jwt';
+import ENV from 'src/config/env';
+import REDIS_KEYS from 'src/redis/redisKeys';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
-@WebSocketGateway({ cors: true, })
+
+interface AuthenticatedSocket extends Socket {
+  user?: any;
+  userId?: string;
+}
+
+@WebSocketGateway({ cors: true, namespace: '/ladies-night', })
 export class LadiesNightGateway {
 
-  constructor(private readonly ladiesNightService: LadiesNightService) { }
+  constructor(private readonly ladiesNightService: LadiesNightService, private jwtService: JwtService) { }
+  private readonly logger = new Logger(LadiesNightGateway.name);
 
   @WebSocketServer()
   server: Server;  // This is the socket.io server instance
 
-  handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
 
-    // You can do things like authenticate the client here
-    // or join the client to a room
+  private extractTokenFromSocket(socket: any): string | null {
+    // Check multiple possible locations for the token
+    return (
+      socket.handshake.query?.token ||
+      socket.handshake.auth?.token ||
+      (socket.handshake.headers?.authorization?.startsWith('Bearer ')
+        ? socket.handshake.headers.authorization.substring(7)
+        : null)
+    );
+  }
+
+  private async isLadiesNightActive() {
+    return true
+    const isLadiesNightActive = await this.ladiesNightService.isLadiesNightActive();
+    return isLadiesNightActive;
+  }
+
+  afterInit(server: Server) {
+
+    // Set up middleware for authentication at server level
+    server.use(async (socket: AuthenticatedSocket, next) => {
+      try {
+
+        // Check if Ladies Night is active before allowing connections
+        const isLadiesNightActive = await this.isLadiesNightActive();
+
+        if (!isLadiesNightActive) {
+          this.logger.log('Ladies Night is not active. No connections allowed.');
+          throw new Error('Ladies Night is not active. No connections allowed.');
+        }
+
+        const token = this.extractTokenFromSocket(socket);
+
+        if (!token) {
+          // ? questionnable i think you need a ws exception 
+          throw new UnauthorizedException('No token provided');
+        }
+
+        const payload = this.jwtService.verify(token, {
+          secret: ENV.JWT_ACCESS_SECRET,
+        });
+        // Attach user info to socket
+        socket.user = {
+          id: payload.sub,
+          ...payload
+        };
+
+        this.logger.log(`Socket ${socket.id} authenticated for user ${socket.user.id}`);
+        next();
+
+      } catch (error) {
+        this.logger.error(`Authentication failed for socket ${socket.id}: ${error.message}`);
+        next(new Error('Authentication failed'));
+      }
+    });
+
+    this.logger.log('WebSocket Gateway initialized with authentication middleware');
+  }
+
+
+  async handleConnection(@ConnectedSocket() socket: authSocket) {
+    console.log(`Client connected: ${socket.id}`);
+    await this.ladiesNightService.updateSavedUserSocketId(socket.user.id, socket.id);
   }
 
 
@@ -26,47 +98,46 @@ export class LadiesNightGateway {
   }
 
 
-  @UseGuards(WsJwtGuard)
-  @SubscribeMessage('authenticate')
-  async authenticate(@ConnectedSocket() socket: authSocket, @MessageBody() message: string) {
-
-    await this.ladiesNightService.updateSavedUserSocketId(socket.user.id, socket.id);
-
-    // optionally return to sender
-    return { status: 'sent', message };
-  }
-
 
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('get-quota')
-  async getQuota(@ConnectedSocket() socket: authSocket, @MessageBody() message: string) {
+  async getQuota(@ConnectedSocket() socket: authSocket) {
 
-    await this.ladiesNightService.updateSavedUserSocketId(socket.user.id, socket.id);
+    const userId = socket.user.id;
 
-    const getDrinkQuota = await this.ladiesNightService.getDrinkQuota();
+    const getDrinkQuota = await this.ladiesNightService.getUserQuota(userId);
 
-    const a = await this.ladiesNightService.getUserDrinksConsumed(socket.user.id);
+    return getDrinkQuota;
 
-    // broadcast to all clients except sender
-    // client.broadcast.emit('receiveMessage', { senderId: client.id, message });
-
-
-    // optionally return to sender
-    return { status: 'sent', message };
   }
 
 
-  @SubscribeMessage('sendMessage2')
-  handleSendMessage2(@ConnectedSocket() client: Socket, @MessageBody() message: string) {
+  @SubscribeMessage('generate-code')
+  generateCode(@ConnectedSocket() socket: authSocket) {
 
-    console.log(`Client ${client.id} says: ${message}`);
+    const userId = socket.user.id;
 
-    // broadcast to all clients except sender
-    client.broadcast.emit('receiveMessage', { senderId: client.id, message });
+    const code = this.ladiesNightService.getCode(userId);
+
+    return { code };
+
+  };
+
+  @UseGuards(RolesGuard)
+  @Roles(Role.WAITER)
+  @SubscribeMessage('consume-drink')
+  async consumeDrink(@ConnectedSocket() socket: authSocket, @MessageBody() message: string) {
 
 
-    // optionally return to sender
-    return { status: 'sent', message };
-  }
+    const response = await this.ladiesNightService.consumeDrink(message);
+
+    socket.emit('drink-consumed', response);
+
+    if (response.userSocketId) {
+      this.server.to(response.userSocketId).emit('drink-consumed', response);
+    }
+
+  };
+
 
 }

@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nest
 import { Queue, Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { HASHES } from 'src/redis/hashes';
 import REDIS_KEYS from 'src/redis/redisKeys';
 
 
@@ -34,27 +35,27 @@ export class BullmqService implements OnModuleInit, OnModuleDestroy {
 
 
     private LadiesNightStarted = async (data: EventJobData) => {
-        this.redis.set(REDIS_KEYS.isLadiesNightAvailable, 1);
+        this.redis.set(REDIS_KEYS.isLadiesNightAvailable(), 1);
         console.log('job started of : ', data.eventName)
 
 
     };
 
     private LadiesNightEnded = async (data: EventJobData) => {
-        this.redis.del(REDIS_KEYS.isLadiesNightAvailable);
-        console.log('job ended of : ', data.eventName)
+        this.redis.del(REDIS_KEYS.isLadiesNightAvailable());
+        console.log('job ended of : ', data.eventName);
 
     }
 
     private spinningWheelStarted = async (data: EventJobData) => {
-        this.redis.set(REDIS_KEYS.isSpinningWheelAvailable, 1);
+        this.redis.set(REDIS_KEYS.isSpinningWheelAvailable(), 1);
         console.log('job started of : ', data.eventName)
-
 
     };
 
+
     private spinningWheelEnded = async (data: EventJobData) => {
-        this.redis.del(REDIS_KEYS.isSpinningWheelAvailable);
+        this.redis.del(REDIS_KEYS.isSpinningWheelAvailable());
         console.log('job ended of : ', data.eventName)
 
     }

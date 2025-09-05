@@ -21,6 +21,7 @@ export const HASHES = {
 
         USER: {
             HASH: (userId: string) => `ladies_night:user:${userId}`,
+            ALL_HASH: () => "ladies_night:user:*",
             USER_DRINKS_CONSUMED: () => "user_drinks_consumed",
             USER_CODE: () => "user_code",
             SOCKET_ID: () => "socket_id",
