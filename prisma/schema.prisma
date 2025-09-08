@@ -104,4 +104,20 @@ model Event {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isLadiesNight])
+}
+
+enum EventAssiciated {
+  LadiesNight
+  SpinnigWheel
+}
+
+model Stats {
+  id                String          @id @default(uuid())
+  event             EventAssiciated
+  date              DateTime
+  totalParticipants Int
+  drinksConsumed    Int
+  quota             Int
 }

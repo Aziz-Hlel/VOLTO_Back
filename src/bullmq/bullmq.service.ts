@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { Queue, Worker, Job } from 'bullmq';
+    import { Queue, Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
+import { LadiesNightService } from 'src/ladies-night/ladies-night.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { HASHES } from 'src/redis/hashes';
 import REDIS_KEYS from 'src/redis/redisKeys';
@@ -34,48 +35,12 @@ export class BullmqService implements OnModuleInit, OnModuleDestroy {
     public constructor(private prisma: PrismaService, @Inject('REDIS_CLIENT') private readonly redis: Redis) { }
 
 
-    private LadiesNightStarted = async (data: EventJobData) => {
-        this.redis.set(REDIS_KEYS.isLadiesNightAvailable(), 1);
-        console.log('job started of : ', data.eventName)
 
 
-    };
-
-    private LadiesNightEnded = async (data: EventJobData) => {
-        this.redis.del(REDIS_KEYS.isLadiesNightAvailable());
-        console.log('job ended of : ', data.eventName);
-
-    }
-
-    private spinningWheelStarted = async (data: EventJobData) => {
-        this.redis.set(REDIS_KEYS.isSpinningWheelAvailable(), 1);
-        console.log('job started of : ', data.eventName)
-
-    };
-
-
-    private spinningWheelEnded = async (data: EventJobData) => {
-        this.redis.del(REDIS_KEYS.isSpinningWheelAvailable());
-        console.log('job ended of : ', data.eventName)
-
-    }
-
-
-
-    private handlers: Record<EventJobData['eventType'], Record<EventJobData['action'], Handler>> = {
-        ladiesNight: {
-            START: this.LadiesNightStarted,
-            END: this.LadiesNightEnded,
-        },
-        spinWheel: {
-            START: this.spinningWheelStarted,
-            END: this.spinningWheelEnded,
-        }
-    }
 
 
     private initQueue() {
-        this.eventQueue = new Queue('events-scheduler', {
+        this.eventQueue = new Queue<EventJobData>('events-scheduler', {
             connection: this.redis,
             defaultJobOptions: {
                 removeOnComplete: 50,  // Keep last 50 completed jobs for monitoring
@@ -87,19 +52,26 @@ export class BullmqService implements OnModuleInit, OnModuleDestroy {
                 },
             },
         })
+
+        this.eventQueue.on('waiting', job => {
+            this.logger.log(`📥 Job ${job.data.eventId} ${job.data.eventName} has been created and is waiting`);
+        });
+
+
     }
 
     private initWorker() {
         this.eventWorker = new Worker<EventJobData>('events-scheduler',
             async (job: Job<EventJobData>) => {
-                const jobFunction = this.handlers[job.data.eventType][job.data.action]
-                await jobFunction(job.data);
+                // const jobFunction = this.handlers[job.data.eventType][job.data.action]
+                // await jobFunction(job.data);
             },
             {
                 connection: this.redis,
                 concurrency: 2
             }
         )
+
 
         this.eventWorker.on('completed', (job) => {
             this.logger.log(`✅ Event job completed: ${job.data.eventName} ${job.data.action}`);
@@ -128,13 +100,14 @@ export class BullmqService implements OnModuleInit, OnModuleDestroy {
     }
 
     generateCronExpression = (date: Date) => {
-        const getDay = date.getDay();
+        const getMinutes = date.getUTCMinutes();
+        const dayOfTheWeek = date.getUTCDay();
         const getHour = date.getUTCHours();
 
 
-        return `*/5 * * * * *`;
+        // return `*/5 * * * * *`;
 
-        // return `${getDay} ${getHour} * * * *`;
+        return `${getMinutes} ${getHour} * * ${dayOfTheWeek}`;
     }
 
     createLadiesNightJob = async () => {
@@ -160,6 +133,7 @@ export class BullmqService implements OnModuleInit, OnModuleDestroy {
             jobId: 'ladiesNight:START',
 
         });
+        console.log('dirrab l start cron = ', startDateCron);
 
         const endDateCron = this.generateCronExpression(ladiesNightEvent.endDate);
         await this.eventQueue.add('events-scheduler', {
@@ -170,10 +144,12 @@ export class BullmqService implements OnModuleInit, OnModuleDestroy {
         }, {
             repeat: {
                 pattern: endDateCron,
-                utc: true
+                utc: true,
             },
             jobId: 'ladiesNight:END',
         });
+
+        console.log('dirrab l end cron = ', endDateCron);
 
     }
 
@@ -222,8 +198,7 @@ export class BullmqService implements OnModuleInit, OnModuleDestroy {
         if (isLadiesNightJobsExists) return
 
 
-        // await this.createLadiesNightJob();
-
+        await this.createLadiesNightJob();
         const jobSchedulers = await this.eventQueue.getJobSchedulers();
 
         this.logger.log(`Found ${jobSchedulers.length} job schedulers`);

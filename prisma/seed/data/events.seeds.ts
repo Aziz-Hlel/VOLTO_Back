@@ -10,13 +10,20 @@ type IMediaType = Omit<Media, 'id' | 'createdAt' | 'updatedAt'>;
 type IEventSeeds = Omit<Event, | 'createdAt' | 'updatedAt'> & { thumnail: IMediaType, video: IMediaType };
 
 
+const now = new Date();
+
+const oneMinute = 60 * 1000
+const oneMinuteLater = new Date(now.getTime() + oneMinute);
+const fiveMinuteLater = new Date(now.getTime() + oneMinute * 5);
+
+
 const eventSeeds: IEventSeeds[] = [
     {
         id: "5e3b7f1c-2d4a-4f6e-9a8b-1c2d3e4f5a6b",
         name: "Ladies Night",
         description: "Ladies Night",
-        startDate: new Date("2025-08-01T00:00:00.000Z"),
-        endDate: new Date("2025-08-31T23:59:59.999Z"),
+        startDate: oneMinuteLater,
+        endDate: fiveMinuteLater,
         type: EventType.WEEKLY,
         isLadiesNight: true,
         thumnail: LadiesNightThumbnail("5e3b7f1c-2d4a-4f6e-9a8b-1c2d3e4f5a6b"),
@@ -62,11 +69,11 @@ const eventSeeds: IEventSeeds[] = [
 
 const seedEvents = async () => {
     for (const eventWithMedia of eventSeeds) {
-        
+
         const { thumnail, video, ...event } = eventWithMedia
         await seedMedia(thumnail);
         await seedMedia(video);
-        
+
         await prisma.event.upsert({
             where: { name: event.name },
             update: event,

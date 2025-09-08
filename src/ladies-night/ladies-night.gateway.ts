@@ -17,6 +17,12 @@ interface AuthenticatedSocket extends Socket {
   userId?: string;
 }
 
+
+interface BaseEventResponse {
+  success: boolean;
+  error_message?: string;
+}
+
 @WebSocketGateway({ cors: true, namespace: '/ladies-night', })
 export class LadiesNightGateway {
 
@@ -40,7 +46,7 @@ export class LadiesNightGateway {
 
   private async isLadiesNightActive() {
     return true
-    const isLadiesNightActive = await this.ladiesNightService.isLadiesNightActive();
+    const isLadiesNightActive = await this.ladiesNightService.isLadiesNightActive2();
     return isLadiesNightActive;
   }
 
@@ -107,19 +113,19 @@ export class LadiesNightGateway {
 
     const getDrinkQuota = await this.ladiesNightService.getUserQuota(userId);
 
-    return getDrinkQuota;
+    socket.emit('drink-quota', getDrinkQuota);
 
   }
 
 
   @SubscribeMessage('generate-code')
-  generateCode(@ConnectedSocket() socket: authSocket) {
-
+  async generateCode(@ConnectedSocket() socket: authSocket) {
+    // throw new Error('Method not implemented.');
     const userId = socket.user.id;
 
-    const code = this.ladiesNightService.getCode(userId);
+    const code = await this.ladiesNightService.getCode(userId);
 
-    return { code };
+    socket.emit('get-code', { code: code });
 
   };
 
@@ -129,14 +135,17 @@ export class LadiesNightGateway {
   async consumeDrink(@ConnectedSocket() socket: authSocket, @MessageBody() code: string) {
 
     if (!code) throw new BadRequestException('No code provided');
+    try {
+      const response = await this.ladiesNightService.consumeDrink(code);
+      socket.emit('drink-consumed', response);
 
-    const response = await this.ladiesNightService.consumeDrink(code);
+      if (response.userSocketId) this.server.to(response.userSocketId).emit('drink-consumed', response);
 
-    socket.emit('drink-consumed', response);
-
-    if (response.userSocketId) {
-      this.server.to(response.userSocketId).emit('drink-consumed', response);
+    } catch (error) {
+      socket.emit('drink-consumed', error);
     }
+
+
 
   };
 

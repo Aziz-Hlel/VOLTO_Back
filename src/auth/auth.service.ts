@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from '../users/Dto/create-user';
 import { UserMapper } from 'src/users/Mapper/usersMapper';
 import { AuthUser } from 'src/users/Dto/AuthUser';
 import { UserResponseDto } from 'src/users/Dto/userResponse';
@@ -17,6 +16,9 @@ export class AuthService {
 
 
     constructor(private usersService: UsersService, private jwtService: JwtService,) { }
+
+    static jwtExpirationTime = ["production", "stage"].includes(ENV.NODE_ENV) ? '15m' : "1h";
+    static refreshExpirationTime = ["production", "stage"].includes(ENV.NODE_ENV) ? '7d' : "30d";
 
 
     async registerCustomer(dto: CreateCustomerDto) {
@@ -80,11 +82,11 @@ export class AuthService {
 
         const accessToken = this.jwtService.sign(payload, {
             secret: ENV.JWT_ACCESS_SECRET,
-            expiresIn: '15m',
+            expiresIn: AuthService.jwtExpirationTime,
         });
         const refreshToken = this.jwtService.sign(payload, {
             secret: ENV.JWT_REFRESH_SECRET,
-            expiresIn: '7d',
+            expiresIn: AuthService.refreshExpirationTime,
         });
         return { accessToken, refreshToken };
     }

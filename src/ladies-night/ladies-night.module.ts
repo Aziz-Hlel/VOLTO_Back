@@ -8,5 +8,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
     imports: [PrismaModule, AuthModule],
     controllers: [],
     providers: [LadiesNightGateway, LadiesNightService],
+    exports: [LadiesNightService]
 })
 export class LadiesNightModule { }
