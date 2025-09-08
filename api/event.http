@@ -1,0 +1,51 @@
+
+@baseUrl = http://localhost:3000/api
+
+
+### Login request
+### Step 1: Get access token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "user@example.com",
+    "password": "user"
+}
+
+
+### Get Ladies Night event
+# @name getLadiesNightEvent
+GET   {{baseUrl}}/events/5e3b7f1c-2d4a-4f6e-9a8b-1c2d3e4f5a6b
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+
+
+### Create event
+# @name updateEvent
+PATCH     {{baseUrl}}/events/b6d1e3f4-5a7c-4f2b-8e1a-9c3b2d4f5a6e
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+
+{
+  "id": "b6d1e3f4-5a7c-4f2b-8e1a-9c3b2d4f5a6e",
+  "name": "New Year's Eve",
+  "type": "SPECIAL",
+  "description": "New Year's Eve",
+  "startDate": "2025-12-31T00:00:00.000Z",
+  "endDate": "2025-12-31T23:59:59.999Z",
+  "cronStartDate": null,
+  "cronEndDate": null,
+  "thumbnailKey": "events/new-year-event.jpg",
+  "videoKey": "events/volto-video3.mp4"
+}
+
+
+
+### Update
+# @name getEvent
+GET     {{baseUrl}}/events/b6d1e3f4-5a7c-4f2b-8e1a-9c3b2d4f5a6e
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}

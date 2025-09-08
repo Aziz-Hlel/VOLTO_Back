@@ -3,6 +3,8 @@ import Redis from 'ioredis';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { HASHES, HASHES3 } from 'src/redis/hashes';
 import REDIS_KEYS from 'src/redis/redisKeys';
+import cronParser from 'cron-parser';
+
 
 @Injectable()
 export class LadiesNightService {
@@ -12,116 +14,6 @@ export class LadiesNightService {
     static DRINK_QUOTA = 3;
     static msInHours = 1000 * 60 * 60;
 
-    getNextTransition = (startDay: number, startHour: number, endDay: number, endHour: number): Date => {
-
-        const currentDate = new Date();
-
-        const curDay = currentDate.getUTCDay();
-        const curHour = currentDate.getUTCHours();
-
-        // Helper to build a Date from "this week's day/hour"
-        function nextDateFrom(day: number, hour: number): Date {
-            const result = new Date(Date.UTC(
-                currentDate.getUTCFullYear(),
-                currentDate.getUTCMonth(),
-                currentDate.getUTCDate(),
-                hour, 0, 0, 0
-            ));
-
-            // Shift forward to the correct day of week
-            const diff = (day - result.getUTCDay() + 7) % 7;
-            result.setUTCDate(result.getUTCDate() + diff);
-            return result;
-        }
-
-        const nextStart = nextDateFrom(startDay, startHour);
-        const nextEnd = nextDateFrom(endDay, endHour);
-
-        // If we're already past today's boundary, roll forward a week
-        if (nextStart <= currentDate) nextStart.setUTCDate(nextStart.getUTCDate() + 7);
-        if (nextEnd <= currentDate) nextEnd.setUTCDate(nextEnd.getUTCDate() + 7);
-
-        // Decide which transition is sooner
-        return nextStart < nextEnd ? nextStart : nextEnd;
-    }
-
-
-
-    isInWeeklyWindow = (startDay: number, startHour: number, endDay: number, endHour: number): boolean => {
-
-        const currentDate = new Date();
-        const curDay = currentDate.getUTCDay();   // 0 = Sunday, 1 = Monday, ...
-        const curHour = currentDate.getUTCHours();
-
-        // Case 1: Same day start & end (e.g., Monday 18-23)
-        if (startDay === endDay) {
-            return curDay === startDay && curHour >= startHour && curHour < endHour;
-        }
-
-        // Case 2: Event spans multiple days (e.g., Friday 22:00 → Saturday 02:00)
-        if (curDay === startDay && curHour >= startHour) return true;
-        if (curDay === endDay && curHour < endHour) return true;
-
-        // If event covers multiple full days (rare for weekly, but let's be robust)
-        if (startDay < endDay && curDay > startDay && curDay < endDay) return true;
-        if (startDay > endDay && (curDay > startDay || curDay < endDay)) return true; // wraparound across Sunday
-
-        return false;
-    }
-
-    async fetchNstoreLadiesNightTimeStamps() {
-
-        const ladiesNight = await this.prisma.event.findFirst({ where: { isLadiesNight: true } });
-
-        if (!ladiesNight) throw new BadRequestException('Ladies Night event not found in database');
-
-        // if (ladiesNight.startDate.getUTCDay() === new Date().getUTCDay())
-
-
-        const currentDate = new Date();
-
-        const startDay = ladiesNight.startDate.getUTCDay();
-        const startHour = ladiesNight.startDate.getUTCHours();
-        const endDay = ladiesNight.endDate.getUTCDay();
-        const endHour = ladiesNight.endDate.getUTCHours();
-
-
-        const active = this.isInWeeklyWindow(startDay, startHour, endDay, endHour);
-        const nextTransition = this.getNextTransition(startDay, startHour, endDay, endHour);
-
-
-        const ttlMs = nextTransition.getTime() - currentDate.getTime();
-
-        await this.redis.set(
-            REDIS_KEYS.isLadiesNightAvailable(),
-            active ? 1 : 0,
-            'PX',
-            ttlMs
-        );
-
-        return active;
-
-
-
-    }
-
-
-
-    async isLadiesNightActive(): Promise<boolean> {
-
-
-        const isLadiesNightActive = await this.redis.get(REDIS_KEYS.isLadiesNightAvailable());
-        if (isLadiesNightActive === null) return await this.fetchNstoreLadiesNightTimeStamps();
-        return isLadiesNightActive === "1";
-
-    };
-
-
-
-
-
-
-
 
 
     async storeLadiesNightTimeStamps() {
@@ -129,53 +21,38 @@ export class LadiesNightService {
         const ladiesNight = await this.prisma.event.findFirst({ where: { isLadiesNight: true } });
 
         if (!ladiesNight) throw new BadRequestException('Ladies Night event not found in database');
+        if (!ladiesNight.cronStartDate || !ladiesNight.cronEndDate) throw new BadRequestException('Ladies Night cron dates are not set');
 
-        await this.redis.hmset("ladies_night", { start_date: ladiesNight.startDate, end_date: ladiesNight.endDate });
+        await this.redis.hmset(HASHES.LADIES_NIGHT.DATE.HASH(), {
+            [HASHES.LADIES_NIGHT.DATE.CRON_START_DATE()]: ladiesNight.cronStartDate,
+            [HASHES.LADIES_NIGHT.DATE.CRON_END_DATE()]: ladiesNight.cronEndDate
+        });
 
-        return [ladiesNight.startDate.toDateString(), ladiesNight.endDate.toDateString()];
+        return [ladiesNight.cronStartDate, ladiesNight.cronEndDate];
     }
 
 
-
-
-
-
     async isLadiesNightActive2(): Promise<boolean> {
-        let str_startDate_ladiesNight: null | string = null;
-        let str_endDate_ladiesNight: null | string = null;
-        [str_startDate_ladiesNight, str_endDate_ladiesNight] = await this.redis.hmget("ladies_night", "start_date", "end_date");
 
-        if (str_startDate_ladiesNight === null || str_endDate_ladiesNight === null) {
-            [str_startDate_ladiesNight, str_endDate_ladiesNight] = await this.storeLadiesNightTimeStamps();
+        let cronStartDate_ladiesNight: null | string = null;
+        let cronEndDate_ladiesNight: null | string = null;
+        [cronStartDate_ladiesNight, cronEndDate_ladiesNight] = await this.redis.hmget(HASHES.LADIES_NIGHT.DATE.HASH(), HASHES.LADIES_NIGHT.DATE.CRON_START_DATE(), HASHES.LADIES_NIGHT.DATE.CRON_END_DATE());
+
+        if (cronStartDate_ladiesNight === null || cronEndDate_ladiesNight === null) {
+            [cronStartDate_ladiesNight, cronEndDate_ladiesNight] = await this.storeLadiesNightTimeStamps();
         }
-
-        const startDate_ladiesNight = new Date(str_startDate_ladiesNight);
-        const endDate_ladiesNight = new Date(str_endDate_ladiesNight);
-
-        const startDay = startDate_ladiesNight.getUTCDay();
-        const startHour = startDate_ladiesNight.getUTCHours();
-        const endDay = endDate_ladiesNight.getUTCDay();
-        const endHour = endDate_ladiesNight.getUTCHours();
-
 
         const currentDate = new Date();
-        const curDay = currentDate.getUTCDay();   // 0 = Sunday, 1 = Monday, ...
-        const curHour = currentDate.getUTCHours();
 
-        // Case 1: Same day start & end (e.g., Monday 18-23)
-        if (startDay === endDay) {
-            return curDay === startDay && curHour >= startHour && curHour < endHour;
-        }
+        const startInterval = cronParser.parse(cronStartDate_ladiesNight, { currentDate });
+        const startDate = startInterval.prev().toDate();
 
-        // Case 2: Event spans multiple days (e.g., Friday 22:00 → Saturday 02:00)
-        if (curDay === startDay && curHour >= startHour) return true;
-        if (curDay === endDay && curHour < endHour) return true;
+        const endInterval = cronParser.parse(cronEndDate_ladiesNight, { currentDate: startDate }); // Get this week's end date
+        const endDate = endInterval.next().toDate();
 
-        // If event covers multiple full days (rare for weekly, but let's be robust)
-        if (startDay < endDay && curDay > startDay && curDay < endDay) return true;
-        if (startDay > endDay && (curDay > startDay || curDay < endDay)) return true; // wraparound across Sunday
+        const inInterval = currentDate >= startDate && currentDate <= endDate;
 
-        return false;
+        return inInterval;
 
     }
 
@@ -205,9 +82,7 @@ export class LadiesNightService {
         if (!remainingDrinks || isNaN(Number(remainingDrinks))) return 0;
 
         if (Number(remainingDrinks) > LadiesNightService.DRINK_QUOTA) {
-            // ! add log error here to get notify if this happen because it shouldnt, instead of throwing an error
-            throw new BadRequestException('No more drinks for this user');
-            // return LadiesNightService.DRINK_QUOTA;
+            throw new BadRequestException('user consumed drinks more than quota');
         }
 
 
@@ -233,7 +108,10 @@ export class LadiesNightService {
 
         const userDrinksConsumed = await this.getUserDrinksConsumed(userId);
 
-        if (userDrinksConsumed > LadiesNightService.DRINK_QUOTA) return null;
+        if (userDrinksConsumed > LadiesNightService.DRINK_QUOTA)
+            throw new BadRequestException('user consumed drinks more than quota');
+
+        if (userDrinksConsumed === LadiesNightService.DRINK_QUOTA) return null;
 
         const existingCode = await this.redis.hget(HASHES.LADIES_NIGHT.USER.HASH(userId), HASHES.LADIES_NIGHT.USER.USER_CODE());
 
@@ -370,6 +248,7 @@ export class LadiesNightService {
 
 
     }
+
 
     saveStatsToDb = async () => {
 

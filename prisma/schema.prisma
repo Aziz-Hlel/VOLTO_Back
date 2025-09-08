@@ -98,8 +98,10 @@ model Event {
   name          String    @unique
   type          EventType
   description   String?
-  startDate     DateTime
-  endDate       DateTime
+  startDate     DateTime?
+  endDate       DateTime?
+  cronStartDate String?
+  cronEndDate   String?
   isLadiesNight Boolean   @default(false)
 
   createdAt DateTime @default(now())
@@ -120,4 +122,25 @@ model Stats {
   totalParticipants Int
   drinksConsumed    Int
   quota             Int
+}
+
+model SpinningWheel {
+  id        String   @id @default(cuid())
+  name      String?
+  isActive  Boolean  @default(false)
+  startDate DateTime
+  endDate   DateTime
+
+  rewardList SpinningWheelReward[]
+
+  @@map("spinning_wheel_events")
+}
+
+model SpinningWheelReward {
+  id      String        @id @default(cuid())
+  name    String
+  wheelId String
+  event   SpinningWheel @relation(fields: [wheelId], references: [id], onDelete: Cascade)
+
+  @@map("spinning_wheel_rewards")
 }

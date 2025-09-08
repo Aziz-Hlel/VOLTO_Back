@@ -102,7 +102,7 @@ Authorization: Bearer {{login.response.body.accessToken}}
 
 
 
-### Register a new user
+### Check the event created
 # @name getEvent
 GET   {{baseUrl}}/events/{{createEvent.response.body.id}}
 Content-Type: application/json

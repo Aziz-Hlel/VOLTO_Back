@@ -14,7 +14,7 @@ const now = new Date();
 
 const oneMinute = 60 * 1000
 const oneMinuteLater = new Date(now.getTime() + oneMinute);
-const fiveMinuteLater = new Date(now.getTime() + oneMinute * 5);
+const fiveMinuteLater = new Date(now.getTime() + oneMinute * 61);
 
 
 const eventSeeds: IEventSeeds[] = [
@@ -22,8 +22,10 @@ const eventSeeds: IEventSeeds[] = [
         id: "5e3b7f1c-2d4a-4f6e-9a8b-1c2d3e4f5a6b",
         name: "Ladies Night",
         description: "Ladies Night",
-        startDate: oneMinuteLater,
-        endDate: fiveMinuteLater,
+        startDate: null,
+        endDate: null,
+        cronStartDate: "30 15 * * 1",
+        cronEndDate: "55 15 * * 1",
         type: EventType.WEEKLY,
         isLadiesNight: true,
         thumnail: LadiesNightThumbnail("5e3b7f1c-2d4a-4f6e-9a8b-1c2d3e4f5a6b"),
@@ -33,8 +35,10 @@ const eventSeeds: IEventSeeds[] = [
         id: "8a1c3d5e-7f2b-4a6d-9e1c-3b4f5a6d7e8f",
         name: "Friday Brunch",
         description: "Friday Brunch",
-        startDate: new Date("2025-08-04T00:00:00.000Z"),
-        endDate: new Date("2025-08-04T23:59:59.999Z"),
+        startDate: null,
+        endDate: null,
+        cronStartDate: "0 10 * * 1",
+        cronEndDate: "1 23 * * 2",
         type: EventType.WEEKLY,
         isLadiesNight: false,
         thumnail: fridayBrunchThumbnail("8a1c3d5e-7f2b-4a6d-9e1c-3b4f5a6d7e8f"),
@@ -45,8 +49,10 @@ const eventSeeds: IEventSeeds[] = [
         id: "3f7a1d5c-2b6e-4a8f-9c1b-5d2e3f4a6b7c",
         name: "Hookas Night",
         description: "Hookas Night",
-        startDate: new Date("2025-08-05T00:00:00.000Z"),
-        endDate: new Date("2025-08-05T23:59:59.999Z"),
+        startDate: null,
+        endDate: null,
+        cronStartDate: "0 10 * * 1",
+        cronEndDate: "1 23 * * 2",
         type: EventType.WEEKLY,
         isLadiesNight: false,
         thumnail: hookasNightThumbnail("3f7a1d5c-2b6e-4a8f-9c1b-5d2e3f4a6b7c"),
@@ -58,6 +64,8 @@ const eventSeeds: IEventSeeds[] = [
         description: "New Year's Eve",
         startDate: new Date("2025-12-31T00:00:00.000Z"),
         endDate: new Date("2025-12-31T23:59:59.999Z"),
+        cronStartDate: null,
+        cronEndDate: null,
         type: EventType.SPECIAL,
         isLadiesNight: false,
         thumnail: newYearEveThumbnail("b6d1e3f4-5a7c-4f2b-8e1a-9c3b2d4f5a6e"),

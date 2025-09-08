@@ -1,14 +1,17 @@
-import { Injectable, } from '@nestjs/common';
+import { Inject, Injectable, } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EntityType, Event } from '@prisma/client';
 import { MediaService } from 'src/media/media.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import Redis from 'ioredis';
+import REDIS_KEYS from 'src/redis/redisKeys';
+import { HASHES } from 'src/redis/hashes';
 
 @Injectable()
 export class EventsService {
 
-  constructor(private prisma: PrismaService, private readonly mediaService: MediaService) { }
+  constructor(private prisma: PrismaService, private readonly mediaService: MediaService, @Inject('REDIS_CLIENT') private readonly redis: Redis) { }
 
 
   async create(createEventDto: CreateEventDto) {
@@ -82,11 +85,39 @@ export class EventsService {
   //   return eventWithMedia;
   // }
 
-  update(id: number, updateEventDto: UpdateEventDto) {
-    return `This action updates a #${id} event`;
+  update = async (updateEventDto: UpdateEventDto) => {
+    // ! not solid when a user updates a media there s lot of bugs , @@unique([entityType, entityId, mediaPurpose]) put in the db will make it crash if you add another media since the new media will have the same values and you need to delete and changes the states of the old media once the new one is confirmed
+    const { thumbnailKey, videoKey, ...eventDto } = updateEventDto
+
+    const existingEvent = await this.getById(updateEventDto.id);
+
+    if (!existingEvent)
+      throw new Error(`Event with ID ${updateEventDto.id} not found`);
+
+    if (existingEvent.thumbnail.s3Key !== updateEventDto.thumbnailKey)
+      await this.mediaService.confirmPendingMedia(updateEventDto.thumbnailKey, updateEventDto.id)
+
+    if (existingEvent.video.s3Key !== updateEventDto.videoKey)
+      await this.mediaService.confirmPendingMedia(updateEventDto.videoKey, updateEventDto.id)
+
+    
+    const createdEvent: Event = await this.prisma.event.update({
+      where: { id: updateEventDto.id },
+      data: {
+        ...eventDto,
+      }
+    });
+
+    if (existingEvent.isLadiesNight) {
+      this.redis.hdel(HASHES.LADIES_NIGHT.DATE.HASH());
+    }
+
+    return createdEvent;
+
+
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} event`;
   }
 }

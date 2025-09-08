@@ -10,9 +10,10 @@ import REDIS_KEYS from 'src/redis/redisKeys';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import { LadiesNightActiveGuard } from './guards/LadiesNightActive.guard';
 
 
-interface AuthenticatedSocket extends Socket {
+export interface AuthenticatedSocket extends Socket {
   user?: any;
   userId?: string;
 }
@@ -23,6 +24,7 @@ interface BaseEventResponse {
   error_message?: string;
 }
 
+@UseGuards(LadiesNightActiveGuard)
 @WebSocketGateway({ cors: true, namespace: '/ladies-night', })
 export class LadiesNightGateway {
 
@@ -45,7 +47,7 @@ export class LadiesNightGateway {
   }
 
   private async isLadiesNightActive() {
-    return true
+    // return true
     const isLadiesNightActive = await this.ladiesNightService.isLadiesNightActive2();
     return isLadiesNightActive;
   }
@@ -54,8 +56,8 @@ export class LadiesNightGateway {
 
     // Set up middleware for authentication at server level
     server.use(async (socket: AuthenticatedSocket, next) => {
-      try {
 
+      try {
         // Check if Ladies Night is active before allowing connections
         const isLadiesNightActive = await this.isLadiesNightActive();
 
@@ -64,6 +66,11 @@ export class LadiesNightGateway {
           throw new Error('Ladies Night is not active. No connections allowed.');
         }
 
+      } catch (error) {
+        this.logger.error(`Ladies Night is not active, Access denied for socket ${socket.id}: ${error.message}`);
+        next(new Error('Ladies Night is not active. No connections allowed'));
+      }
+      try {
         const token = this.extractTokenFromSocket(socket);
 
         if (!token) {
@@ -108,24 +115,33 @@ export class LadiesNightGateway {
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('get-quota')
   async getQuota(@ConnectedSocket() socket: authSocket) {
+    try {
 
-    const userId = socket.user.id;
+      const userId = socket.user.id;
 
-    const getDrinkQuota = await this.ladiesNightService.getUserQuota(userId);
+      const getDrinkQuota = await this.ladiesNightService.getUserQuota(userId);
 
-    socket.emit('drink-quota', getDrinkQuota);
+      socket.emit('drink-quota', getDrinkQuota);
+
+    } catch (error) {
+      socket.emit('drink-quota', { error: error.message });
+    }
 
   }
 
 
   @SubscribeMessage('generate-code')
   async generateCode(@ConnectedSocket() socket: authSocket) {
-    // throw new Error('Method not implemented.');
-    const userId = socket.user.id;
+    try {
 
-    const code = await this.ladiesNightService.getCode(userId);
+      const userId = socket.user.id;
 
-    socket.emit('get-code', { code: code });
+      const code = await this.ladiesNightService.getCode(userId);
+
+      socket.emit('get-code', { code: code });
+    } catch (error) {
+      socket.emit('get-code', { code: null, error: error.message });
+    }
 
   };
 
@@ -134,18 +150,18 @@ export class LadiesNightGateway {
   @SubscribeMessage('consume-drink')
   async consumeDrink(@ConnectedSocket() socket: authSocket, @MessageBody() code: string) {
 
-    if (!code) throw new BadRequestException('No code provided');
     try {
+      if (!code) throw new BadRequestException('No code provided');
+
       const response = await this.ladiesNightService.consumeDrink(code);
+
       socket.emit('drink-consumed', response);
 
       if (response.userSocketId) this.server.to(response.userSocketId).emit('drink-consumed', response);
 
     } catch (error) {
-      socket.emit('drink-consumed', error);
+      socket.emit('drink-consumed', error.message);
     }
-
-
 
   };
 

@@ -31,8 +31,8 @@ export const HASHES = {
 
         DATE: {
             HASH: () => "ladies_night:date",
-            START_DATE: () => "start_date",
-            END_DATE: () => "end_date",
+            CRON_START_DATE: () => "start_date",
+            CRON_END_DATE: () => "end_date",
         },
 
     },

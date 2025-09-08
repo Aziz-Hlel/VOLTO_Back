@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-    import { Queue, Worker, Job } from 'bullmq';
+import { Queue, Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
 import { LadiesNightService } from 'src/ladies-night/ladies-night.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -119,7 +119,7 @@ export class BullmqService implements OnModuleInit, OnModuleDestroy {
 
         if (!ladiesNightEvent) throw new Error('Ladies Night event does not exist in the database');
 
-        const startDateCron = this.generateCronExpression(ladiesNightEvent.startDate);
+        const startDateCron = this.generateCronExpression(ladiesNightEvent.startDate ?? new Date());
         await this.eventQueue.add('events-scheduler', {
             action: "START",
             eventId: ladiesNightEvent.id,
@@ -135,7 +135,7 @@ export class BullmqService implements OnModuleInit, OnModuleDestroy {
         });
         console.log('dirrab l start cron = ', startDateCron);
 
-        const endDateCron = this.generateCronExpression(ladiesNightEvent.endDate);
+        const endDateCron = this.generateCronExpression(ladiesNightEvent.endDate ?? new Date()); // ! added new Date() just to go pass the error
         await this.eventQueue.add('events-scheduler', {
             action: "END",
             eventId: ladiesNightEvent.id,
