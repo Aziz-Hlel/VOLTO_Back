@@ -1,5 +1,3 @@
 export class CreateSpinnigWheel {
-
-    name: string;
-
+  name: string;
 }

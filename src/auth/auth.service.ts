@@ -12,97 +12,84 @@ import { CreateCustomerDto } from 'src/users/Dto/create-customer';
 
 @Injectable()
 export class AuthService {
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
+  static jwtExpirationTime = ['production', 'stage'].includes(ENV.NODE_ENV)
+    ? '15m'
+    : '1h';
+  static refreshExpirationTime = ['production', 'stage'].includes(ENV.NODE_ENV)
+    ? '7d'
+    : '30d';
 
+  async registerCustomer(dto: CreateCustomerDto) {
+    const user = await this.usersService.registerCustomer(dto);
 
-    constructor(private usersService: UsersService, private jwtService: JwtService,) { }
+    const tokens = this.getTokens(user);
 
-    static jwtExpirationTime = ["production", "stage"].includes(ENV.NODE_ENV) ? '15m' : "1h";
-    static refreshExpirationTime = ["production", "stage"].includes(ENV.NODE_ENV) ? '7d' : "30d";
+    return tokens;
+  }
 
+  async login(email: string, password: string) {
+    const validatedUser = await this.validateUser(email, password);
 
-    async registerCustomer(dto: CreateCustomerDto) {
+    const tokens = this.getTokens(validatedUser);
 
-        const user = await this.usersService.registerCustomer(dto);
+    return tokens;
+  }
 
-        const tokens = this.getTokens(user);
+  async refresh(refreshToken: string) {
+    try {
+      const payload: { sub: string } = await this.jwtService.verify(
+        refreshToken,
+        {
+          secret: ENV.JWT_REFRESH_SECRET,
+        },
+      );
 
-        return tokens;
+      const user = await this.usersService.findById(payload.sub);
+      if (!user) throw new UnauthorizedException('User not found');
 
+      const tokens = this.getTokens(user);
+
+      return tokens;
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
     }
+  }
 
-    async login(email: string, password: string) {
-        const validatedUser = await this.validateUser(email, password);
+  async validateUser(email: string, password: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) throw new UnauthorizedException('Invalid credentials');
 
-        const tokens = this.getTokens(validatedUser);
+    const passwordValid = await bcrypt.compare(password, user.password);
+    if (!passwordValid) throw new UnauthorizedException('Invalid credentials');
 
-        return tokens;
+    return user;
+  }
 
-    }
+  public getTokens(user: User) {
+    const payload = UserMapper.toTokenPayload(user);
 
+    const accessToken = this.jwtService.sign(payload, {
+      secret: ENV.JWT_ACCESS_SECRET,
+      expiresIn: AuthService.jwtExpirationTime,
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: ENV.JWT_REFRESH_SECRET,
+      expiresIn: AuthService.refreshExpirationTime,
+    });
+    return { accessToken, refreshToken };
+  }
 
+  async me(user: AuthUser): Promise<UserResponseDto> {
+    const foundUser = await this.usersService.findById(user.id);
+    if (!foundUser) throw new UnauthorizedException('User not found');
 
-    async refresh(refreshToken: string) {
+    const userDto = UserMapper.toResponse(foundUser);
 
-
-        try {
-
-            const payload = await this.jwtService.verify(refreshToken, { secret: ENV.JWT_REFRESH_SECRET, });
-
-            const user = await this.usersService.findById(payload.sub);
-            if (!user) throw new UnauthorizedException('User not found');
-
-            const tokens = this.getTokens(user);
-
-            return tokens;
-
-        } catch {
-            throw new UnauthorizedException('Invalid refresh token');
-        }
-    }
-
-
-
-
-    async validateUser(email: string, password: string) {
-
-        const user = await this.usersService.findByEmail(email);
-        if (!user) throw new UnauthorizedException('Invalid credentials');
-
-        const passwordValid = await bcrypt.compare(password, user.password);
-        if (!passwordValid) throw new UnauthorizedException('Invalid credentials');
-
-        return user;
-
-    }
-
-    public getTokens(user: User) {
-
-        const payload = UserMapper.toTokenPayload(user);
-
-        const accessToken = this.jwtService.sign(payload, {
-            secret: ENV.JWT_ACCESS_SECRET,
-            expiresIn: AuthService.jwtExpirationTime,
-        });
-        const refreshToken = this.jwtService.sign(payload, {
-            secret: ENV.JWT_REFRESH_SECRET,
-            expiresIn: AuthService.refreshExpirationTime,
-        });
-        return { accessToken, refreshToken };
-    }
-
-
-
-
-    async me(user: AuthUser): Promise<UserResponseDto> {
-
-        const foundUser = await this.usersService.findById(user.id);
-        if (!foundUser) throw new UnauthorizedException('User not found');
-
-        const userDto = UserMapper.toResponse(foundUser);
-
-        return userDto;
-    }
-
-
+    return userDto;
+  }
 }

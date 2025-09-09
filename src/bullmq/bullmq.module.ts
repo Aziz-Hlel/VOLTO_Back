@@ -5,8 +5,7 @@ import { LadiesNightModule } from 'src/ladies-night/ladies-night.module';
 import { BullmqService2 } from './bullmq2.service';
 
 @Module({
-  imports: [PrismaModule,LadiesNightModule],
-  providers: [BullmqService2]
+  imports: [PrismaModule, LadiesNightModule],
+  providers: [BullmqService2],
 })
-export class BullmqModule { }
- 
+export class BullmqModule {}

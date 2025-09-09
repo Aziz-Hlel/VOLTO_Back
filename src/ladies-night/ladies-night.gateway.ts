@@ -1,5 +1,16 @@
-import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { BadRequestException, Logger, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+  ConnectedSocket,
+  MessageBody,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
+import {
+  BadRequestException,
+  Logger,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { WsJwtGuard } from 'src/auth/guards/WsJwtGuard.guard';
 import { LadiesNightService } from './ladies-night.service';
@@ -12,12 +23,10 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { LadiesNightActiveGuard } from './guards/LadiesNightActive.guard';
 
-
 export interface AuthenticatedSocket extends Socket {
   user?: any;
   userId?: string;
 }
-
 
 interface BaseEventResponse {
   success: boolean;
@@ -25,15 +34,16 @@ interface BaseEventResponse {
 }
 
 @UseGuards(LadiesNightActiveGuard)
-@WebSocketGateway({ cors: true, namespace: '/ladies-night', })
+@WebSocketGateway({ cors: true, namespace: '/ladies-night' })
 export class LadiesNightGateway {
-
-  constructor(private readonly ladiesNightService: LadiesNightService, private jwtService: JwtService) { }
+  constructor(
+    private readonly ladiesNightService: LadiesNightService,
+    private jwtService: JwtService,
+  ) {}
   private readonly logger = new Logger(LadiesNightGateway.name);
 
   @WebSocketServer()
-  server: Server;  // This is the socket.io server instance
-
+  server: Server; // This is the socket.io server instance
 
   private extractTokenFromSocket(socket: any): string | null {
     // Check multiple possible locations for the token
@@ -48,33 +58,37 @@ export class LadiesNightGateway {
 
   private async isLadiesNightActive() {
     // return true
-    const isLadiesNightActive = await this.ladiesNightService.isLadiesNightActive2();
+    const isLadiesNightActive =
+      await this.ladiesNightService.isLadiesNightActive2();
     return isLadiesNightActive;
   }
 
   afterInit(server: Server) {
-
     // Set up middleware for authentication at server level
     server.use(async (socket: AuthenticatedSocket, next) => {
-
       try {
         // Check if Ladies Night is active before allowing connections
         const isLadiesNightActive = await this.isLadiesNightActive();
 
         if (!isLadiesNightActive) {
-          this.logger.log('Ladies Night is not active. No connections allowed.');
-          throw new Error('Ladies Night is not active. No connections allowed.');
+          this.logger.log(
+            'Ladies Night is not active. No connections allowed.',
+          );
+          throw new Error(
+            'Ladies Night is not active. No connections allowed.',
+          );
         }
-
       } catch (error) {
-        this.logger.error(`Ladies Night is not active, Access denied for socket ${socket.id}: ${error.message}`);
+        this.logger.error(
+          `Ladies Night is not active, Access denied for socket ${socket.id}: ${error.message}`,
+        );
         next(new Error('Ladies Night is not active. No connections allowed'));
       }
       try {
         const token = this.extractTokenFromSocket(socket);
 
         if (!token) {
-          // ? questionnable i think you need a ws exception 
+          // ? questionnable i think you need a ws exception
           throw new UnauthorizedException('No token provided');
         }
 
@@ -84,56 +98,55 @@ export class LadiesNightGateway {
         // Attach user info to socket
         socket.user = {
           id: payload.sub,
-          ...payload
+          ...payload,
         };
 
-        this.logger.log(`Socket ${socket.id} authenticated for user ${socket.user.id}`);
+        this.logger.log(
+          `Socket ${socket.id} authenticated for user ${socket.user.id}`,
+        );
         next();
-
       } catch (error) {
-        this.logger.error(`Authentication failed for socket ${socket.id}: ${error.message}`);
+        this.logger.error(
+          `Authentication failed for socket ${socket.id}: ${error.message}`,
+        );
         next(new Error('Authentication failed'));
       }
     });
 
-    this.logger.log('WebSocket Gateway initialized with authentication middleware');
+    this.logger.log(
+      'WebSocket Gateway initialized with authentication middleware',
+    );
   }
-
 
   async handleConnection(@ConnectedSocket() socket: authSocket) {
     console.log(`Client connected: ${socket.id}`);
-    await this.ladiesNightService.updateSavedUserSocketId(socket.user.id, socket.id);
+    await this.ladiesNightService.updateSavedUserSocketId(
+      socket.user.id,
+      socket.id,
+    );
   }
-
 
   handleDisconnect(client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
   }
 
-
-
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('get-quota')
   async getQuota(@ConnectedSocket() socket: authSocket) {
     try {
-
       const userId = socket.user.id;
 
       const getDrinkQuota = await this.ladiesNightService.getUserQuota(userId);
 
       socket.emit('drink-quota', getDrinkQuota);
-
     } catch (error) {
       socket.emit('drink-quota', { error: error.message });
     }
-
   }
-
 
   @SubscribeMessage('generate-code')
   async generateCode(@ConnectedSocket() socket: authSocket) {
     try {
-
       const userId = socket.user.id;
 
       const code = await this.ladiesNightService.getCode(userId);
@@ -142,14 +155,15 @@ export class LadiesNightGateway {
     } catch (error) {
       socket.emit('get-code', { code: null, error: error.message });
     }
-
-  };
+  }
 
   @UseGuards(RolesGuard)
   @Roles(Role.WAITER)
   @SubscribeMessage('consume-drink')
-  async consumeDrink(@ConnectedSocket() socket: authSocket, @MessageBody() code: string) {
-
+  async consumeDrink(
+    @ConnectedSocket() socket: authSocket,
+    @MessageBody() code: string,
+  ) {
     try {
       if (!code) throw new BadRequestException('No code provided');
 
@@ -157,13 +171,10 @@ export class LadiesNightGateway {
 
       socket.emit('drink-consumed', response);
 
-      if (response.userSocketId) this.server.to(response.userSocketId).emit('drink-consumed', response);
-
+      if (response.userSocketId)
+        this.server.to(response.userSocketId).emit('drink-consumed', response);
     } catch (error) {
       socket.emit('drink-consumed', error.message);
     }
-
-  };
-
-
+  }
 }

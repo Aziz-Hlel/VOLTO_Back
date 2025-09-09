@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  BadRequestException,
+  UseGuards,
+} from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -10,19 +20,27 @@ import { IsUUID } from 'class-validator';
 
 @Controller('events')
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) { }
+  constructor(private readonly eventsService: EventsService) {}
 
   @UseGuards(JwtAccessGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Post()
   async create(@Body() createEventDto: CreateEventDto) {
+    if (
+      createEventDto.type === EventType.SPECIAL &&
+      (!createEventDto.startDate || !createEventDto.endDate)
+    )
+      throw new BadRequestException(
+        'startDate and endDate are required for special events',
+      );
 
-    if (createEventDto.type === EventType.SPECIAL && (!createEventDto.startDate || !createEventDto.endDate))
-      throw new BadRequestException('startDate and endDate are required for special events');
-
-    if (createEventDto.type === EventType.WEEKLY && (!createEventDto.cronStartDate || !createEventDto.cronEndDate))
-      throw new BadRequestException('cronStartDate and cronEndDate are required for weekly events');
-
+    if (
+      createEventDto.type === EventType.WEEKLY &&
+      (!createEventDto.cronStartDate || !createEventDto.cronEndDate)
+    )
+      throw new BadRequestException(
+        'cronStartDate and cronEndDate are required for weekly events',
+      );
 
     const createdEvent = await this.eventsService.create(createEventDto);
 
@@ -42,12 +60,21 @@ export class EventsController {
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
+    if (
+      updateEventDto.type === EventType.SPECIAL &&
+      (!updateEventDto.startDate || !updateEventDto.endDate)
+    )
+      throw new BadRequestException(
+        'startDate and endDate are required for special events',
+      );
 
-    if (updateEventDto.type === EventType.SPECIAL && (!updateEventDto.startDate || !updateEventDto.endDate))
-      throw new BadRequestException('startDate and endDate are required for special events');
-
-    if (updateEventDto.type === EventType.WEEKLY && (!updateEventDto.cronStartDate || !updateEventDto.cronEndDate))
-      throw new BadRequestException('cronStartDate and cronEndDate are required for weekly events');
+    if (
+      updateEventDto.type === EventType.WEEKLY &&
+      (!updateEventDto.cronStartDate || !updateEventDto.cronEndDate)
+    )
+      throw new BadRequestException(
+        'cronStartDate and cronEndDate are required for weekly events',
+      );
 
     return this.eventsService.update(updateEventDto);
   }

@@ -10,11 +10,7 @@ import { AuthModule } from 'src/auth/auth.module';
 @Module({
   imports: [AuthModule],
   controllers: [StorageController],
-  providers: [
-    StorageStrategyPatternProvider,
-    StorageService
-  ],
-  exports: [StorageService]
-
+  providers: [StorageStrategyPatternProvider, StorageService],
+  exports: [StorageService],
 })
-export class StorageModule { }
+export class StorageModule {}

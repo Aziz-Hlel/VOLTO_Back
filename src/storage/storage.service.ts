@@ -9,12 +9,10 @@ import type { IStorageProvider } from './interfaces/storage.interface';
 
 @Injectable()
 export class StorageService {
-
-
-  constructor(@Inject('STORAGE_SERVICE') private readonly storageService: IStorageProvider,) { }
-
-
-
+  constructor(
+    @Inject('STORAGE_SERVICE')
+    private readonly storageService: IStorageProvider,
+  ) {}
 
   generateFileKey(fileName: string): string {
     const ext = path.extname(fileName);
@@ -24,34 +22,29 @@ export class StorageService {
     return `${safeBase}-${timestamp}${ext}`;
   }
 
-
-
   async getPresignedUrl(preSignedUrlDto: PreSignedUrlRequest) {
-
     const fileKey = this.generateFileKey(preSignedUrlDto.originalName);
     const mimeType = preSignedUrlDto.mimeType;
     const expiresIn = 3600;
 
-
-    const signedUrl = await this.storageService.generatePresignedUrl({ fileKey, mimeType, expiresIn });
-
+    const signedUrl = await this.storageService.generatePresignedUrl({
+      fileKey,
+      mimeType,
+      expiresIn,
+    });
 
     return { signedUrl, fileKey };
-
   }
-
 
   async getObjectUrl(fileKey: string): Promise<string> {
     let objectUrl = '';
     if (ENV.NODE_ENV === 'development' || ENV.NODE_ENV === 'test') {
-      objectUrl = `http://localhost:${ENV.MINIO_PORT}/${ENV.MINIO_BUCKET}/${fileKey}`
-    }
-    else
+      objectUrl = `http://localhost:${ENV.MINIO_PORT}/${ENV.MINIO_BUCKET}/${fileKey}`;
+    } else
       objectUrl = `https://${ENV.AWS_S3_BUCKET}.s3.${ENV.AWS_REGION}.amazonaws.com/${fileKey}`;
 
     return objectUrl;
   }
-
 
   create(createS3Dto: CreateS3Dto) {
     return 'This action adds a new s3';

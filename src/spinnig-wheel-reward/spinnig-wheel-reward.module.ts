@@ -10,6 +10,6 @@ import { AuthModule } from 'src/auth/auth.module';
   imports: [PrismaModule, AuthModule, SpinnigWheelModule],
   controllers: [SpinnigWheelRewardController],
   providers: [SpinnigWheelRewardService],
-  exports: [SpinnigWheelRewardService]
+  exports: [SpinnigWheelRewardService],
 })
-export class SpinnigWheelRewardModule { }
+export class SpinnigWheelRewardModule {}

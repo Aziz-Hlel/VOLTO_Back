@@ -3,7 +3,6 @@ import { AppModule } from './app/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import ENV from './config/env';
 
-
 const globalPrefix = 'api';
 
 const gloabalValidationPipe = new ValidationPipe({
@@ -13,10 +12,8 @@ const gloabalValidationPipe = new ValidationPipe({
 });
 
 async function bootstrap() {
-
   const app = await NestFactory.create(AppModule);
   // const configService = app.get(ConfigService);
-
 
   const PORT = ENV.PORT;
 

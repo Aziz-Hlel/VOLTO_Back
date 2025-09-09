@@ -1,5 +1,4 @@
-import { Gender, Role, Tier } from "@prisma/client";
-
+import { Gender, Role, Tier } from '@prisma/client';
 
 export class UserResponseDto {
   id: string;
@@ -8,5 +7,5 @@ export class UserResponseDto {
   phoneNumber?: string;
   username: string;
   role: Role;
-  tier:Tier;
+  tier: Tier;
 }

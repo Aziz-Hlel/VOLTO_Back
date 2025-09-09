@@ -1,7 +1,5 @@
-
-
 export type GeneratePresignedUrlParams = {
-    fileKey: string,
-    mimeType: string,
-    expiresIn: number,
-}
+  fileKey: string;
+  mimeType: string;
+  expiresIn: number;
+};

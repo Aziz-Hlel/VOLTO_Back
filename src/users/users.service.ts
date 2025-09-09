@@ -7,7 +7,7 @@ import { Role } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   findAll() {
     return this.prisma.user.findMany();
@@ -19,13 +19,11 @@ export class UsersService {
         ...dto,
         role: Role.USER,
         password: hashedPassword,
-      }
+      },
     });
   }
 
-
   async registerCustomer(dto: CreateCustomerDto) {
-
     const existingUser = await this.findByEmail(dto.email);
 
     if (existingUser) throw new UnauthorizedException('Email already exists');
@@ -33,7 +31,7 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const savedUser = await this.createCustomer(dto, hashedPassword);
 
-    return savedUser
+    return savedUser;
   }
 
   findByEmail(email: string) {
@@ -43,8 +41,4 @@ export class UsersService {
   findById(id: string) {
     return this.prisma.user.findUnique({ where: { id } });
   }
-
-
-
-
 }

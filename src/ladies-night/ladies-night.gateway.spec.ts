@@ -16,4 +16,3 @@ describe('LadiesNightGateway', () => {
     expect(gateway).toBeDefined();
   });
 });
- 

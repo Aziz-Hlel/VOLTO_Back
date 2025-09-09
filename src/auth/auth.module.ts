@@ -9,12 +9,8 @@ import { PassportModule } from '@nestjs/passport';
 import { RolesGuard } from './guards/roles.guard';
 
 @Module({
-  imports: [
-    PassportModule,
-    JwtModule.register({}),
-    UsersModule,
-  ],
-  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, RolesGuard,],
+  imports: [PassportModule, JwtModule.register({}), UsersModule],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, RolesGuard],
   controllers: [AuthController],
   exports: [
     AuthService,
@@ -22,7 +18,7 @@ import { RolesGuard } from './guards/roles.guard';
     JwtRefreshStrategy,
     RolesGuard, // 👈 export guards so other modules can use them
     PassportModule, // 👈 export PassportModule so `AuthGuard()` works elsewhere
-    JwtModule,      // 👈 export JwtModule so you don’t need to re-import it
-  ]
+    JwtModule, // 👈 export JwtModule so you don’t need to re-import it
+  ],
 })
-export class AuthModule { }
+export class AuthModule {}

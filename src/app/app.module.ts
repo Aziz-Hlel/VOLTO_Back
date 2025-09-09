@@ -16,7 +16,6 @@ import { StartupModuleModule } from 'src/startup-module/startup-module.module';
 import { SpinnigWheelRewardModule } from 'src/spinnig-wheel-reward/spinnig-wheel-reward.module';
 import { SpinnigWheelModule } from 'src/spinnig-wheel/spinnig-wheel.module';
 
-
 @Module({
   imports: [
     AppConfigModule,
@@ -32,10 +31,10 @@ import { SpinnigWheelModule } from 'src/spinnig-wheel/spinnig-wheel.module';
     BullmqModule,
     StartupModuleModule,
     SpinnigWheelRewardModule,
-    SpinnigWheelModule
+    SpinnigWheelModule,
   ],
 
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

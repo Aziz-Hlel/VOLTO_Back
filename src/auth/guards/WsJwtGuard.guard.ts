@@ -11,10 +11,10 @@ export class WsJwtGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const client: Socket = context.switchToWs().getClient();
-    
+
     try {
       const token = this.extractToken(client);
-      
+
       if (!token) {
         throw new WsException('Unauthorized');
       }
@@ -26,7 +26,7 @@ export class WsJwtGuard implements CanActivate {
       // Store user data on the client
       client['user'] = {
         id: payload.sub,
-        ...payload
+        ...payload,
       };
 
       return true;

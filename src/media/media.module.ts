@@ -9,6 +9,6 @@ import { AuthModule } from 'src/auth/auth.module';
   imports: [PrismaModule, AuthModule, StorageModule],
   providers: [MediaService],
   controllers: [MediaController],
-  exports: [MediaService]
+  exports: [MediaService],
 })
-export class MediaModule { }
+export class MediaModule {}

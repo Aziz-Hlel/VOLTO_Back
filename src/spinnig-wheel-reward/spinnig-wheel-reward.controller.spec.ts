@@ -11,7 +11,9 @@ describe('SpinnigWheelRewardController', () => {
       providers: [SpinnigWheelRewardService],
     }).compile();
 
-    controller = module.get<SpinnigWheelRewardController>(SpinnigWheelRewardController);
+    controller = module.get<SpinnigWheelRewardController>(
+      SpinnigWheelRewardController,
+    );
   });
 
   it('should be defined', () => {

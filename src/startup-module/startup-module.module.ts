@@ -7,6 +7,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule, SpinnigWheelModule, SpinnigWheelRewardModule],
-  providers: [StartupModuleService, SpinningWheelInitService]
+  providers: [StartupModuleService, SpinningWheelInitService],
 })
-export class StartupModuleModule { }
+export class StartupModuleModule {}

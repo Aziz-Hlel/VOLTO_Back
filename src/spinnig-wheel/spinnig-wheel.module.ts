@@ -7,6 +7,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
   imports: [PrismaModule],
   controllers: [SpinnigWheelController],
   providers: [SpinnigWheelService],
-  exports: [SpinnigWheelService]
+  exports: [SpinnigWheelService],
 })
 export class SpinnigWheelModule {}

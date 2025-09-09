@@ -4,21 +4,18 @@ import { IsDate, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateSpinnigWheelDto {
+  @IsString()
+  id: string;
 
-    @IsString()
-    id: string;
+  @IsOptional()
+  @IsString()
+  name: string;
 
-    @IsOptional()
-    @IsString()
-    name: string;
+  @Type(() => Date)
+  @IsDate()
+  startDate: Date;
 
-    @Type(() => Date)
-    @IsDate()
-    startDate: Date;
-
-    @Type(() => Date)
-    @IsDate()
-    endDate: Date;
-
-
+  @Type(() => Date)
+  @IsDate()
+  endDate: Date;
 }

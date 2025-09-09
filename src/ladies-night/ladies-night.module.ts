@@ -5,9 +5,9 @@ import { LadiesNightService } from './ladies-night.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
-    imports: [PrismaModule, AuthModule],
-    controllers: [],
-    providers: [LadiesNightGateway, LadiesNightService],
-    exports: [LadiesNightService]
+  imports: [PrismaModule, AuthModule],
+  controllers: [],
+  providers: [LadiesNightGateway, LadiesNightService],
+  exports: [LadiesNightService],
 })
-export class LadiesNightModule { }
+export class LadiesNightModule {}

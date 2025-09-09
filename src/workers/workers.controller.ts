@@ -4,18 +4,15 @@ import { CreateWorkerDto } from './dto/create-worker.dto';
 
 @Controller(['workers', 'worker'])
 export class WorkersController {
+  constructor(private readonly workersService: WorkersService) {}
 
-    constructor(private readonly workersService: WorkersService) { }
+  @Get(['', '/'])
+  async getAllWorkers() {
+    return this.workersService.findAll();
+  }
 
-    @Get(['', '/'])
-    async getAllWorkers() {
-        return this.workersService.findAll();
-    }
-
-
-    @Post()
-    create(@Body() dto: CreateWorkerDto) {
-        return this.workersService.create(dto);
-    }
-
+  @Post()
+  create(@Body() dto: CreateWorkerDto) {
+    return this.workersService.create(dto);
+  }
 }
