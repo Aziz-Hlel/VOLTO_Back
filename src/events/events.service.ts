@@ -63,42 +63,32 @@ export class EventsService {
     return { ...event, thumbnail, video };
   }
 
-  findAll(query: GetAllEventsDto) {
-    return this.prisma.event.findMany({
+  async findAll(query: GetAllEventsDto) {
+    const events = await this.prisma.event.findMany({
       where: {
         type: query.eventType,
       },
     });
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const eventWithMedia = events.map(async (event) => {
+      const thumbnail = await this.mediaService.getMediaKeyAndUrl({
+        entityType: EntityType.EVENT,
+        entityId: event.id,
+        mediaPurpose: 'thumbnail',
+      });
+
+      const video = await this.mediaService.getMediaKeyAndUrl({
+        entityType: EntityType.EVENT,
+        entityId: event.id,
+        mediaPurpose: 'video',
+      });
+
+      return { ...event, thumbnail, video };
+    });
+
+    return Promise.all(eventWithMedia);
   }
-
-  // async findOne(id: string) {
-  //   const event = await this.prisma.event.findUnique({
-  //     where: { id },
-  //   });
-
-  //   if (!event)
-  //     throw new NotFoundException(`Event with ID ${id} not found`);
-
-  //   const thumbnail = await this.mediaService.findOne({
-  //     entityType: 'Event',
-  //     entityId: id,
-  //     mediaPurpose: 'thumbnail',
-  //   });
-
-  //   const video = await this.mediaService.findOne({
-  //     entityType: 'Event',
-  //     entityId: id,
-  //     mediaPurpose: 'video',
-  //   });
-
-  //   const eventWithMedia = {
-  //     ...event,
-  //     thumbnail,
-  //     video,
-  //   };
-
-  //   return eventWithMedia;
-  // }
 
   update = async (updateEventDto: UpdateEventDto) => {
     // ! not solid when a user updates a media there s lot of bugs , @@unique([entityType, entityId, mediaPurpose]) put in the db will make it crash if you add another media since the new media will have the same values and you need to delete and changes the states of the old media once the new one is confirmed

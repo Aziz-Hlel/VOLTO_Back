@@ -25,11 +25,13 @@ export default tseslint.config(
     },
   },
   {
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
-      'prettier/prettier': 'off',
-    },
+rules: {
+  '@typescript-eslint/no-explicit-any': 'off', // you can relax this
+  '@typescript-eslint/no-floating-promises': 'warn', // keep warnings
+  '@typescript-eslint/no-unsafe-argument': 'off', // optional for now
+  '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }], // highlight unused variables
+  'prettier/prettier': ['error', { singleQuote: true, trailingComma: 'all' }], // make prettier rules errors
+},
+
   },
 );
