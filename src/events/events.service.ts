@@ -1,11 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { EntityType, Event } from '@prisma/client';
+import { EntityType, Event, MediaPurpose } from '@prisma/client';
 import { MediaService } from 'src/media/media.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import Redis from 'ioredis';
-import REDIS_KEYS from 'src/redis/redisKeys';
 import { HASHES } from 'src/redis/hashes';
 import { GetAllEventsDto } from './dto/get-all-events';
 
@@ -28,11 +27,11 @@ export class EventsService {
     });
 
     const confirmThumbnail = this.mediaService.confirmPendingMedia(
-      createEventDto.thumbnailKey,
+      thumbnailKey,
       createdEvent.id,
     );
     const confirmVideo = this.mediaService.confirmPendingMedia(
-      createEventDto.videoKey,
+      videoKey,
       createdEvent.id,
     );
 
@@ -51,13 +50,13 @@ export class EventsService {
     const thumbnail = await this.mediaService.getMediaKeyAndUrl({
       entityType: EntityType.EVENT,
       entityId: event.id,
-      mediaPurpose: 'thumbnail',
+      mediaPurpose: MediaPurpose.THUMBNAIL,
     });
 
     const video = await this.mediaService.getMediaKeyAndUrl({
       entityType: EntityType.EVENT,
       entityId: event.id,
-      mediaPurpose: 'video',
+      mediaPurpose: MediaPurpose.VIDEO,
     });
 
     return { ...event, thumbnail, video };
@@ -70,18 +69,17 @@ export class EventsService {
       },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const eventWithMedia = events.map(async (event) => {
       const thumbnail = await this.mediaService.getMediaKeyAndUrl({
         entityType: EntityType.EVENT,
         entityId: event.id,
-        mediaPurpose: 'thumbnail',
+        mediaPurpose: MediaPurpose.THUMBNAIL,
       });
 
       const video = await this.mediaService.getMediaKeyAndUrl({
         entityType: EntityType.EVENT,
         entityId: event.id,
-        mediaPurpose: 'video',
+        mediaPurpose: MediaPurpose.VIDEO,
       });
 
       return { ...event, thumbnail, video };
@@ -99,13 +97,13 @@ export class EventsService {
     if (!existingEvent)
       throw new Error(`Event with ID ${updateEventDto.id} not found`);
 
-    if (existingEvent.thumbnail.s3Key !== updateEventDto.thumbnailKey)
+    if (existingEvent.thumbnail.s3Key !== thumbnailKey)
       await this.mediaService.confirmPendingMedia(
-        updateEventDto.thumbnailKey,
+        thumbnailKey,
         updateEventDto.id,
       );
 
-    if (existingEvent.video.s3Key !== updateEventDto.videoKey)
+    if (existingEvent.video.s3Key !== videoKey)
       await this.mediaService.confirmPendingMedia(
         updateEventDto.videoKey,
         updateEventDto.id,
@@ -119,7 +117,7 @@ export class EventsService {
     });
 
     if (existingEvent.isLadiesNight) {
-      this.redis.hdel(HASHES.LADIES_NIGHT.DATE.HASH());
+      await this.redis.hdel(HASHES.LADIES_NIGHT.DATE.HASH());
     }
 
     return createdEvent;

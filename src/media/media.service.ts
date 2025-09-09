@@ -24,7 +24,7 @@ export class MediaService {
         entityType: preSignedUrlDto.entityType,
         mimeType: preSignedUrlDto.mimeType,
         entityId: null,
-        mediaPurpose: preSignedUrlDto.mediaPurpose || null,
+        mediaPurpose: preSignedUrlDto.mediaPurpose ,
         fileType: preSignedUrlDto.fileType,
         status: MediaStatus.PENDING,
       },
@@ -70,16 +70,14 @@ export class MediaService {
     });
   }
 
-  findAll() {
-    return `This action returns all media`;
-  }
+
 
   async findOne(identifier: MediaIdentifier): Promise<Media> {
     const media = await this.prisma.media.findFirst({
       where: {
         entityType: identifier.entityType,
         entityId: identifier.entityId,
-        mediaPurpose: identifier.mediaPurpose || null,
+        mediaPurpose: identifier.mediaPurpose ,
       },
     });
 

@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import seedUsers from './data/users.seeds';
 import seedEvents from './data/events.seeds';
+import { seedGallery } from './data/gallery.seed';
 
 const prisma = new PrismaClient();
 
@@ -18,6 +19,8 @@ async function main() {
 
   await seedUsers();
   await seedEvents();
+
+  await seedGallery();
 
   await prisma.$disconnect();
 }

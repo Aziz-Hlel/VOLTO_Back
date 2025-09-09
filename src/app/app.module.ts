@@ -15,6 +15,7 @@ import { BullmqModule } from 'src/bullmq/bullmq.module';
 import { StartupModuleModule } from 'src/startup-module/startup-module.module';
 import { SpinnigWheelRewardModule } from 'src/spinnig-wheel-reward/spinnig-wheel-reward.module';
 import { SpinnigWheelModule } from 'src/spinnig-wheel/spinnig-wheel.module';
+import { GalleryModule } from 'src/gallery/gallery.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { SpinnigWheelModule } from 'src/spinnig-wheel/spinnig-wheel.module';
     StartupModuleModule,
     SpinnigWheelRewardModule,
     SpinnigWheelModule,
+    GalleryModule,
   ],
 
   controllers: [AppController],

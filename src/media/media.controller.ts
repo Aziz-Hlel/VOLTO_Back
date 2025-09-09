@@ -28,10 +28,7 @@ export class MediaController {
     return response;
   }
 
-  @Get()
-  findAll() {
-    return this.mediaService.findAll();
-  }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {

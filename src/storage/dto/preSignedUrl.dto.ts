@@ -7,7 +7,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { FileType } from '../types/fileType';
-import { EntityType } from '@prisma/client';
+import { EntityType, MediaPurpose } from '@prisma/client';
 
 export class PreSignedUrlRequest {
   static oneMb = 1024 * 1024;
@@ -35,8 +35,7 @@ export class PreSignedUrlRequest {
   })
   entityType: EntityType;
 
-  @IsOptional() // 👈 important — skips validation if undefined
   @IsString()
   @MinLength(2)
-  mediaPurpose?: string;
+  mediaPurpose: MediaPurpose;
 }

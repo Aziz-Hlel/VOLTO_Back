@@ -19,7 +19,7 @@ import {
   seedMedia,
 } from './media.seeds';
 
-const prisma = new PrismaClient();
+  const prisma = new PrismaClient();
 
 type IMediaType = Omit<Media, 'id' | 'createdAt' | 'updatedAt'>;
 

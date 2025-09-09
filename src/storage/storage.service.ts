@@ -6,6 +6,7 @@ import { PreSignedUrlRequest } from './dto/preSignedUrl.dto';
 import ENV from 'src/config/env';
 import path from 'path';
 import type { IStorageProvider } from './interfaces/storage.interface';
+import { EntityType } from '@prisma/client';
 
 @Injectable()
 export class StorageService {
@@ -14,16 +15,16 @@ export class StorageService {
     private readonly storageService: IStorageProvider,
   ) {}
 
-  generateFileKey(fileName: string): string {
+  generateFileKey(fileName: string, entityType: EntityType): string {
     const ext = path.extname(fileName);
     const baseName = path.basename(fileName, ext);
     const safeBase = baseName.replace(/[^a-zA-Z0-9-_]/g, '').slice(0, 50);
     const timestamp = Date.now();
-    return `${safeBase}-${timestamp}${ext}`;
+    return `${entityType}/${safeBase}-${timestamp}${ext}`;
   }
 
   async getPresignedUrl(preSignedUrlDto: PreSignedUrlRequest) {
-    const fileKey = this.generateFileKey(preSignedUrlDto.originalName);
+    const fileKey = this.generateFileKey(preSignedUrlDto.originalName,preSignedUrlDto.entityType);
     const mimeType = preSignedUrlDto.mimeType;
     const expiresIn = 3600;
 

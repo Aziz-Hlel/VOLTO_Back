@@ -15,7 +15,7 @@ echo "Setting public download access for \"$MINIO_BUCKET\"..."
 mc anonymous set download local/$MINIO_BUCKET
 
 echo "Uploading seed files..."
-mc cp --recursive ./seed/* local/$MINIO_BUCKET/events/ || echo "No seed files found when uploading seed files to minio❗❗❗"
+mc cp --recursive ./seed/* local/$MINIO_BUCKET/ || echo "No seed files found when uploading seed files to minio❗❗❗"
 
 echo "Initialization complete."
 

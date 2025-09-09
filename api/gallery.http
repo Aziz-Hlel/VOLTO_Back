@@ -1,0 +1,75 @@
+
+
+@baseUrl = http://localhost:3000/api
+
+
+
+
+### Login request
+### Step 1: Get access token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "superadmin@example.com",
+    "password": "superadmin"
+}
+
+
+### Get presigned url for the thumbnail
+# @name getPresignedUrl
+POST {{baseUrl}}/media/presigned-url
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+{
+    "mimeType": "image/jpeg",
+    "fileSize": 136877,
+    "fileType": ".jpg",
+    "originalName": "img.jpg",
+    "entityType": "GALLERY",
+    "mediaPurpose": "IMAGE"
+}
+
+
+### Upload the thumbnail into S3
+# @name uploadFile
+PUT {{getPresignedUrl.response.body.url}}
+Content-Type: image/jpeg
+
+< ./assets/img.jpg
+
+
+### Create Event
+# @name createGallery
+POST  {{baseUrl}}/gallery
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+{
+    "tag": "SPECIAL_EVENTS",
+    "s3Key": "{{getPresignedUrl.response.body.s3Key}}"
+}
+
+
+
+
+
+### Check the event created
+# @name getEvent
+GET   {{baseUrl}}/gallery/{{createGallery.response.body.id}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+
+
+
+### Check All Events
+# @name getEvent
+GET   {{baseUrl}}/gallery?page=1&limit=10
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+
+
