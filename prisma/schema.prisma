@@ -144,3 +144,15 @@ model SpinningWheelReward {
 
   @@map("spinning_wheel_rewards")
 }
+
+enum GalleryTags {
+  SPECIAL_EVENTS
+  VIBES
+  FOOD
+  LADIES_NIGHT
+}
+
+model Gallery {
+  id      String        @id @default(cuid())
+  tag GalleryTags
+}
