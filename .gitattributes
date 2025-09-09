@@ -1,0 +1,9 @@
+
+# Shell scripts always use LF
+*.sh text eol=lf
+
+# Dockerfiles, YAML, JSON, etc. — use LF
+*.Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
