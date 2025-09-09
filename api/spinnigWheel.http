@@ -1,0 +1,65 @@
+
+@baseUrl = http://localhost:3000/api
+
+
+
+### Login request
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "superadmin@example.com",
+    "password": "superadmin"
+}
+
+
+### Get SpinningWheel
+# @name getSpinnigWheel
+GET      {{baseUrl}}/spinnig-wheel/
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+
+
+### Get Wheel Rewards
+# @name getWheelRewards
+GET      {{baseUrl}}/spinnig-wheel-reward/
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+
+
+### Get One Wheel Reward
+# @name updateWheelRewards
+PATCH       {{baseUrl}}/spinnig-wheel-reward/
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+
+{
+    "rewards":[
+        {
+            "id": "{{getSpinnigWheel.response.body.rewardList[0].id}}",
+            "name": "Reward 1 updated from Rest Client"
+        },
+          {
+            "id": "{{getSpinnigWheel.response.body.rewardList[1].id}}",
+            "name": "Reward 2 updated from Rest Client"
+        },
+          {
+            "id": "{{getSpinnigWheel.response.body.rewardList[2].id}}",
+            "name": "Reward 3 updated from Rest Client"
+        },
+          {
+            "id": "{{getSpinnigWheel.response.body.rewardList[3].id}}",
+            "name": "Reward 4 updated from Rest Client"
+        },
+          {
+            "id": "{{getSpinnigWheel.response.body.rewardList[4].id}}",
+            "name": "Reward 5 updated from Rest Client"
+        }
+    ]
+}
+
+

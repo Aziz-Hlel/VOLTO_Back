@@ -16,10 +16,10 @@ export class SpinnigWheelRewardService {
       throw new InternalServerErrorException('No active spinnig wheel found, please create one first before adding rewards.');
 
     if (spinnigWheel.rewardList.length > 5)
-      throw new InternalServerErrorException(' Number of rewards reached more than the maximus which is 5.');
+      throw new InternalServerErrorException('Number of rewards reached more than the maximus which is 5.');
 
     if (spinnigWheel.rewardList.length === 5)
-      throw new BadRequestException(' Number of rewards reached the maximus which is 5.');
+      throw new BadRequestException('Number of rewards reached the maximus which is 5.');
 
     const createdAward = await this.prisma.spinningWheelReward.create({
       data: { ...createSpinnigWheelRewardDto, wheelId: spinnigWheel.id }
@@ -31,27 +31,33 @@ export class SpinnigWheelRewardService {
 
 
   findAll = async () => {
-    const awards = await this.prisma.spinningWheelReward.findMany();
+    const awards = await this.prisma.spinningWheelReward.findMany({ take: 5 });
 
     return awards
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} spinnigWheelReward`;
-  }
 
   update = async (updateSpinnigWheelRewardDto: UpdateSpinnigWheelRewardDto) => {
-    const award = await this.prisma.spinningWheelReward.findUnique({ where: { id: updateSpinnigWheelRewardDto.id } });
 
-    if (!award)
-      throw new NotFoundException('award not found');
+    try {
 
-    const updatedAward = await this.prisma.spinningWheelReward.update({ where: { id: updateSpinnigWheelRewardDto.id }, data: updateSpinnigWheelRewardDto });
+      const awards = await this.prisma.$transaction(
+        updateSpinnigWheelRewardDto.rewards.map((reward) =>
+          this.prisma.spinningWheelReward.update({
+            where: {
+              id: reward.id,
+            },
+            data: { name: reward.name },
+          })
+        )
+      );
 
-    return updatedAward
+      return awards
+    } catch (err) {
+      throw new Error(err);
+    }
+
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} spinnigWheelReward`;
-  }
+
 }

@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { CreateSpinnigWheelDto } from './dto/create-spinnig-wheel.dto';
+import { CreateSpinnigWheel } from './dto/create-spinnig-wheel.dto';
 import { UpdateSpinnigWheelDto } from './dto/update-spinnig-wheel.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -8,9 +8,36 @@ export class SpinnigWheelService {
 
   constructor(private readonly prisma: PrismaService) { }
 
+  async isSpinnigWheelExists() {
+    const spinnigWheel = await this.prisma.spinningWheel.findFirst({
+      where: {
+        isActive: true
+      }
+    })
 
-  create(createSpinnigWheelDto: CreateSpinnigWheelDto) {
-    return 'This action adds a new spinnigWheel';
+    if (!spinnigWheel)
+      return null;
+
+    return spinnigWheel;
+  }
+
+  create(createSpinnigWheelDto: CreateSpinnigWheel) {
+
+    if (this.isSpinnigWheelExists() === null)
+      throw new BadRequestException('There is already an active spinnig wheel');
+
+    const oldDate = new Date("2000-01-01T00:00:00Z");
+
+    return this.prisma.spinningWheel.create({
+      data: {
+        name: createSpinnigWheelDto.name,
+        startDate: oldDate,
+        endDate: oldDate,
+        isActive: true
+      }
+    });
+
+
   }
 
 
@@ -52,7 +79,7 @@ export class SpinnigWheelService {
         endDate: updateSpinnigWheelDto.endDate,
         isActive: true
       }
-      }
+    }
     )
     return updatedWheel
   }

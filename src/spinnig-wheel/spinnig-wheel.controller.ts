@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode } from '@nestjs/common';
 import { SpinnigWheelService } from './spinnig-wheel.service';
-import { CreateSpinnigWheelDto } from './dto/create-spinnig-wheel.dto';
+import { CreateSpinnigWheel } from './dto/create-spinnig-wheel.dto';
 import { UpdateSpinnigWheelDto } from './dto/update-spinnig-wheel.dto';
 
 @Controller('spinnig-wheel')
@@ -9,7 +9,7 @@ export class SpinnigWheelController {
 
 
   @HttpCode(200)
-  @Get('active')
+  @Get()
   async getActive() {
     const spinnigWheel = await this.spinnigWheelService.findActive();
 

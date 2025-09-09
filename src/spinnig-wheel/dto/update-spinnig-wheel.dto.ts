@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateSpinnigWheelDto } from './create-spinnig-wheel.dto';
+import { CreateSpinnigWheel } from './create-spinnig-wheel.dto';
 import { IsDate, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -20,5 +20,5 @@ export class UpdateSpinnigWheelDto {
     @IsDate()
     endDate: Date;
 
-    
+
 }

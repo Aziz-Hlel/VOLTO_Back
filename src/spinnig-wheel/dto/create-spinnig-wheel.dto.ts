@@ -1,1 +1,5 @@
-export class CreateSpinnigWheelDto {}
+export class CreateSpinnigWheel {
+
+    name: string;
+
+}

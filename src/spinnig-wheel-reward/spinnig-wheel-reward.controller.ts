@@ -1,12 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { SpinnigWheelRewardService } from './spinnig-wheel-reward.service';
 import { CreateSpinnigWheelRewardDto } from './dto/create-spinnig-wheel-reward.dto';
 import { UpdateSpinnigWheelRewardDto } from './dto/update-spinnig-wheel-reward.dto';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
+import { JwtAccessGuard } from 'src/auth/guards/jwt.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Controller('spinnig-wheel-reward')
 export class SpinnigWheelRewardController {
   constructor(private readonly spinnigWheelRewardService: SpinnigWheelRewardService) { }
-
 
 
   @Get()
@@ -14,20 +17,15 @@ export class SpinnigWheelRewardController {
     return this.spinnigWheelRewardService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.spinnigWheelRewardService.findOne(+id);
-  }
 
+  @UseGuards(JwtAccessGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @Patch()
-  async update(@Param('id') id: string, @Body() updateSpinnigWheelRewardDto: UpdateSpinnigWheelRewardDto) {
+  async update(@Body() updateSpinnigWheelRewardDto: UpdateSpinnigWheelRewardDto) {
     const updatedReward = await this.spinnigWheelRewardService.update(updateSpinnigWheelRewardDto);
 
     return updatedReward
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.spinnigWheelRewardService.remove(+id);
-  }
+
 }

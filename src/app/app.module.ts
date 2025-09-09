@@ -12,6 +12,9 @@ import { EventsModule } from 'src/events/events.module';
 import { LadiesNightModule } from 'src/ladies-night/ladies-night.module';
 import { RedisModule } from 'src/redis/redis.module';
 import { BullmqModule } from 'src/bullmq/bullmq.module';
+import { StartupModuleModule } from 'src/startup-module/startup-module.module';
+import { SpinnigWheelRewardModule } from 'src/spinnig-wheel-reward/spinnig-wheel-reward.module';
+import { SpinnigWheelModule } from 'src/spinnig-wheel/spinnig-wheel.module';
 
 
 @Module({
@@ -26,7 +29,10 @@ import { BullmqModule } from 'src/bullmq/bullmq.module';
     MediaModule,
     EventsModule,
     LadiesNightModule,
-    BullmqModule
+    BullmqModule,
+    StartupModuleModule,
+    SpinnigWheelRewardModule,
+    SpinnigWheelModule
   ],
 
   controllers: [AppController],

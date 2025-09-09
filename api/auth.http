@@ -26,7 +26,7 @@ Content-Type: application/json
 
 {
     "email": "test@test.test",
-    "password": "12345"
+    "password": "123456"
 }
 
 ### Get current user (uses token from login)
