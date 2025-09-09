@@ -8,6 +8,7 @@ import {
   Delete,
   BadRequestException,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -16,7 +17,7 @@ import { EventType, Role } from '@prisma/client';
 import { JwtAccessGuard } from 'src/auth/guards/jwt.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
-import { IsUUID } from 'class-validator';
+import { GetAllEventsDto } from './dto/get-all-events';
 
 @Controller('events')
 export class EventsController {
@@ -48,8 +49,8 @@ export class EventsController {
   }
 
   @Get()
-  findAll() {
-    return this.eventsService.findAll();
+  findAll(@Query() query: GetAllEventsDto) {
+    return this.eventsService.findAll(query);
   }
 
   @Get(':id')

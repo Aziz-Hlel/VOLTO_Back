@@ -7,6 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import Redis from 'ioredis';
 import REDIS_KEYS from 'src/redis/redisKeys';
 import { HASHES } from 'src/redis/hashes';
+import { GetAllEventsDto } from './dto/get-all-events';
 
 @Injectable()
 export class EventsService {
@@ -62,8 +63,12 @@ export class EventsService {
     return { ...event, thumbnail, video };
   }
 
-  findAll() {
-    return `This action returns all events`;
+  findAll(query: GetAllEventsDto) {
+    return this.prisma.event.findMany({
+      where: {
+        type: query.eventType,
+      },
+    });
   }
 
   // async findOne(id: string) {
