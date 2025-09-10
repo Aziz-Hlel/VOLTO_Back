@@ -67,7 +67,7 @@ Authorization: Bearer {{login.response.body.accessToken}}
 
 ### Check All Events
 # @name getEvent
-GET   {{baseUrl}}/gallery?page=1&limit=10
+GET   {{baseUrl}}/gallery?page=1&limit=40
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.accessToken}}
 
