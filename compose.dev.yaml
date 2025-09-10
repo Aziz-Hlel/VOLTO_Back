@@ -32,7 +32,9 @@ services:
 
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
-
+    networks:
+      - app-network
+      
   postgres:
     image: postgres:latest
     container_name: postgres
