@@ -13,6 +13,6 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-RUN  pnpm prisma migrate dev --name add-gallery-to-entity-type
+RUN  pnpm prisma generate
 
 CMD ["pnpm", "run", "start:dev"] 
