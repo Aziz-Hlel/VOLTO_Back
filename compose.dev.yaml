@@ -38,7 +38,8 @@ services:
         condition: service_started
       redis:
         condition: service_started
-
+    volumes:
+      - ./prisma:/app/prisma
     networks:
       - app-network
 
