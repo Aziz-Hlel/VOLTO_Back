@@ -32,9 +32,16 @@ services:
 
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
+
+    depends_on:
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+
     networks:
       - app-network
-      
+
   postgres:
     image: postgres:latest
     container_name: postgres
