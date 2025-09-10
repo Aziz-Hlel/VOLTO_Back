@@ -27,21 +27,22 @@ export class AuthService {
   async registerCustomer(dto: CreateCustomerDto) {
     const user = await this.usersService.registerCustomer(dto);
 
-    const tokens = this.getTokens(user);
+    const {accessToken, refreshToken} = this.getTokens(user);
 
     const userDto = UserMapper.toResponse(user);
 
-    return {tokens, user: userDto};
+    return {accessToken, refreshToken, user: userDto};
   }
 
   async login(email: string, password: string) {
+
     const validatedUser = await this.validateUser(email, password);
 
-    const tokens = this.getTokens(validatedUser);
+    const {accessToken, refreshToken} = this.getTokens(validatedUser);
 
     const userDto = UserMapper.toResponse(validatedUser);
 
-    return { tokens, user: userDto };
+    return { accessToken, refreshToken, user: userDto };
   }
 
   async refresh(refreshToken: string) {
