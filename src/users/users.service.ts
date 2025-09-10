@@ -13,8 +13,8 @@ export class UsersService {
     return this.prisma.user.findMany();
   }
 
-  createCustomer(dto: CreateCustomerDto, hashedPassword: string) {
-    return this.prisma.user.create({
+  async createCustomer(dto: CreateCustomerDto, hashedPassword: string) {
+    return await this.prisma.user.create({
       data: {
         ...dto,
         role: Role.USER,
@@ -23,6 +23,15 @@ export class UsersService {
     });
   }
 
+  async createUser(dto: CreateUserDto, hashedPassword: string) {
+  return await this.prisma.user.create({
+    data: {
+      ...dto,
+      password: hashedPassword,
+    },
+  });
+}
+
   async registerCustomer(dto: CreateCustomerDto) {
     const existingUser = await this.findByEmail(dto.email);
 
@@ -30,6 +39,18 @@ export class UsersService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const savedUser = await this.createCustomer(dto, hashedPassword);
+
+    return savedUser;
+  }
+
+  async registerUser(dto: CreateUserDto) {
+
+    const existingUser = await this.findByEmail(dto.email);
+
+    if (existingUser) throw new UnauthorizedException('Email already exists');
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const savedUser = await this.createUser(dto, hashedPassword);
 
     return savedUser;
   }

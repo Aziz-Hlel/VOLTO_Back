@@ -32,11 +32,11 @@ export class AuthController {
 
   @UseGuards(JwtAccessGuard, RolesGuard)
   @HttpCode(201)
-  @Post('register')
+  @Post('register-admin')
   async adminRegister(@Body() dto: CreateUserDto) {
     const payload = await this.authService.registerCustomer(dto);
 
-    return payload;
+    return payload; 
   }
 
   @HttpCode(200)

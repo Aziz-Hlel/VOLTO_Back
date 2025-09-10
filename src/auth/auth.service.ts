@@ -29,7 +29,9 @@ export class AuthService {
 
     const tokens = this.getTokens(user);
 
-    return tokens;
+    const userDto = UserMapper.toResponse(user);
+
+    return {tokens, user: userDto};
   }
 
   async login(email: string, password: string) {
@@ -37,7 +39,9 @@ export class AuthService {
 
     const tokens = this.getTokens(validatedUser);
 
-    return tokens;
+    const userDto = UserMapper.toResponse(validatedUser);
+
+    return { tokens, user: userDto };
   }
 
   async refresh(refreshToken: string) {
