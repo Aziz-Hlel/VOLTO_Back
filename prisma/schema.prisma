@@ -70,7 +70,7 @@ enum MediaStatus {
 
 enum MediaPurpose {
   AVATAR
-  IMAGE 
+  IMAGE
   THUMBNAIL
   VIDEO
 }
@@ -161,6 +161,9 @@ enum GalleryTags {
 }
 
 model Gallery {
-  id      String        @id @default(cuid())
+  id  String      @id @default(cuid())
   tag GalleryTags
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

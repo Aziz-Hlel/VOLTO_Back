@@ -11,6 +11,29 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class SpinnigWheelService {
   constructor(private readonly prisma: PrismaService) {}
 
+  
+
+  async isSpinningWheelAvailable() {
+    const spinnigWheel = await this.prisma.spinningWheel.findFirst({
+      where: {
+        isActive: true,
+      },
+    });
+
+    if (!spinnigWheel) throw new InternalServerErrorException('No active spinnig wheel instance found');
+
+    const currentDate = new Date();
+
+    if (
+      spinnigWheel.startDate > currentDate ||
+      spinnigWheel.endDate < currentDate
+    )
+      return null;
+
+    return spinnigWheel;
+
+  }
+
   async isSpinnigWheelExists() {
     const spinnigWheel = await this.prisma.spinningWheel.findFirst({
       where: {
@@ -53,6 +76,7 @@ export class SpinnigWheelService {
 
     return spinnigWheel;
   };
+  
 
   update = async (updateSpinnigWheelDto: UpdateSpinnigWheelDto) => {
     const spinnigWheel = await this.prisma.spinningWheel.findFirst({

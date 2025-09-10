@@ -23,8 +23,8 @@ export class GalleryService {
           tag: createGalleryDto.tag,
         },
       });
-
-       await this.mediaService.confirmPendingMedia(
+        
+      await this.mediaService.confirmPendingMedia(
         createGalleryDto.s3Key,
         createdGallery.id,
       );
@@ -37,16 +37,29 @@ export class GalleryService {
   };
 
  async findAll(query: GetGalleryDto) {
-   
-    const galleries = await this.prisma.gallery.findMany({
+
+  const galleries =  this.prisma.gallery.findMany({
       where: {
         tag: query.tag,
       },
       skip: (query.page - 1) * query.limit,
       take: query.limit,
+      orderBy:{
+        createdAt:'desc'
+      },
+
+    });
+    const total =  this.prisma.gallery.count({
+      where: {
+        tag: query.tag,
+      },
     });
 
-    const galleryWithMedia = galleries.map(async (gallery) => {
+    const [response,count]= await this.prisma.$transaction([galleries,total]);
+
+
+
+    const galleryWithMedia = response.map(async (gallery) => {
       const thumbnail = await this.mediaService.getMediaKeyAndUrl({
         entityType: EntityType.GALLERY,
         entityId: gallery.id,
@@ -55,8 +68,13 @@ export class GalleryService {
 
       return { ...gallery, thumbnail };
     });
+    
+    const galleriesWithMedia = await Promise.all(galleryWithMedia);
 
-    return Promise.all(galleryWithMedia);
+    return {
+      payload : galleriesWithMedia,
+      count
+    }
   }
 
   async findOne(id: string) {

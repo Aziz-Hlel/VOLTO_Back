@@ -67,7 +67,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAccessGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN,Role.SUPER_ADMIN)
   @HttpCode(200)
   @Get('test')
   test(@CurrentUser() user: AuthUser) {

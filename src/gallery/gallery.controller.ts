@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   UseGuards,
+  Res,
 } from '@nestjs/common';
 import { GalleryService } from './gallery.service';
 import { CreateGalleryDto } from './dto/create-gallery.dto';
@@ -17,6 +18,7 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAccessGuard } from 'src/auth/guards/jwt.guard';
+import type { Response } from 'express';
 
 @Controller('gallery')
 export class GalleryController {
@@ -30,8 +32,14 @@ export class GalleryController {
   }
 
   @Get()
-  findAll(@Query() query: GetGalleryDto) {
-    return this.galleryService.findAll(query);
+  async findAll(@Query() query: GetGalleryDto,@Res({ passthrough: true }) response: Response) {
+
+    const data = await this.galleryService.findAll(query);
+
+    response.setHeader('X-Total-Count', data.count.toString());
+    
+    return data.payload;
+
   }
 
   @Get(':id')
