@@ -17,6 +17,7 @@ export const envSchema = z.object({
   AWS_ACCESS_KEY_ID: z.string(),
   AWS_SECRET_ACCESS_KEY: z.string(),
   AWS_S3_BUCKET: z.string(),
+  AWS_CLOUDFRONT_URL: z.string(),
 
   MINIO_Region: z.string().optional(),
   MINIO_ACCESS_KEY: z.string().optional(),
