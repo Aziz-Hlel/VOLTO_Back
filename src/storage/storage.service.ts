@@ -42,7 +42,7 @@ export class StorageService {
     if (ENV.NODE_ENV === 'development' || ENV.NODE_ENV === 'test') {
       objectUrl = `http://localhost:${ENV.MINIO_PORT}/${ENV.MINIO_BUCKET}/${fileKey}`;
     } else
-      objectUrl = `https://${ENV.AWS_S3_BUCKET}.s3.${ENV.AWS_REGION}.amazonaws.com/${fileKey}`;
+      objectUrl = `https://${ENV.AWS_CLOUDFRONT_URL}/${fileKey}`;
 
     return objectUrl;
   }
