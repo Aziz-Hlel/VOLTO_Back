@@ -22,13 +22,21 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 export class SpinnigWheelController {
   constructor(private readonly spinnigWheelService: SpinnigWheelService) {}
 
+  @UseGuards(JwtAccessGuard)
+  @HttpCode(200)
+  @Get('admin')
+  async getisActive() {
+    const spinnigWheel = await this.spinnigWheelService.findActive();
+
+    return spinnigWheel;
+  }
 
 
 
   @UseGuards(JwtAccessGuard)
   @HttpCode(200)
-  @Get()
-  async getActive() {
+  @Get('admin')
+  async adminGetSpinnigWheel() {
     const spinnigWheel = await this.spinnigWheelService.findActive();
 
     return spinnigWheel;
@@ -50,5 +58,5 @@ export class SpinnigWheelController {
   };
 
 
-  
+
 }
