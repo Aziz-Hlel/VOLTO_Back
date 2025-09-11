@@ -1,5 +1,5 @@
 
-@baseUrl = http://16.24.105.9/api
+@baseUrl = http://localhost:3000/api
 
 
 ### Login request
@@ -22,9 +22,9 @@ Authorization: Bearer {{login.response.body.accessToken}}
 
 
 
-### Create event
-# @name updateEvent
-PATCH     {{baseUrl}}/events/b6d1e3f4-5a7c-4f2b-8e1a-9c3b2d4f5a6e
+### Update Ladies Night
+# @name updateLadiesNightEvent
+PATCH     {{baseUrl}}/events/5e3b7f1c-2d4a-4f6e-9a8b-1c2d3e4f5a6b
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.accessToken}}
 
@@ -36,10 +36,10 @@ Authorization: Bearer {{login.response.body.accessToken}}
   "description": "Ladies Night",
   "startDate": null,
   "endDate": null,
-  "cronStartDate": "15 13 * * 4",
-  "cronEndDate": "30 13 * * 4",
-  "thumbnailKey": "events/new-year-event.jpg",
-  "videoKey": "events/volto-video3.mp4"
+  "cronStartDate": "15 15 * * 4",
+  "cronEndDate": "30 15 * * 4",
+  "thumbnailKey": "events/ladies-night-wallpaper.jpg",
+  "videoKey": "events/volto-brunch-1.mp4"
 }
 
 

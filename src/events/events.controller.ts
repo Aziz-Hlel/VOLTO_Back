@@ -60,7 +60,8 @@ export class EventsController {
 
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
+  async update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
+    console.log('')
     if (
       updateEventDto.type === EventType.SPECIAL &&
       (!updateEventDto.startDate || !updateEventDto.endDate)
@@ -76,8 +77,12 @@ export class EventsController {
       throw new BadRequestException(
         'cronStartDate and cronEndDate are required for weekly events',
       );
+try{
+  return await this.eventsService.update(updateEventDto);
 
-    return this.eventsService.update(updateEventDto);
+}catch(e){
+  console.log(e);
+}
   }
 
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)

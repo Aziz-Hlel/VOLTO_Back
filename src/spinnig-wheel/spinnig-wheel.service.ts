@@ -185,7 +185,9 @@ export class SpinnigWheelService {
 
 }
 
-  generateUniqueCode(existingCodes: Set<string>): string {
+  async generateUniqueCode(): Promise<string>{
+    const existingCodes = await this.redis.hkeys(HASHES.SPINNING_WHEEL.CODES());
+    const existingCodesSet = new Set(existingCodes);
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     const codeLength = 6;
 
@@ -196,7 +198,7 @@ export class SpinnigWheelService {
         { length: codeLength },
         () => chars[Math.floor(Math.random() * chars.length)],
       ).join('');
-    } while (existingCodes.has(code));
+    } while (existingCodesSet.has(code));
 
     return code;
   }
@@ -220,15 +222,13 @@ async userHasPlayed(userId: string): Promise<boolean> {
 
     const userCachedDetails = await this.redis.hgetall(HASHES.SPINNING_WHEEL.USER.HASH(userId));
 
-    if(Object.keys(userCachedDetails).length > 0){
-      if (userCachedDetails[HASHES.SPINNING_WHEEL.USER.USER_CODE()] !== null)
+    if(Object.keys(userCachedDetails).length > 0 && userCachedDetails[HASHES.SPINNING_WHEEL.USER.USER_CODE()] !== null)
         return {
           hasPlayed: true,
           code: userCachedDetails[HASHES.SPINNING_WHEEL.USER.USER_CODE()]
         }
-        const existingCodes = await this.redis.hkeys(HASHES.SPINNING_WHEEL.CODES());
-        const existingCodesSet = new Set(existingCodes);
-        const code = this.generateUniqueCode(existingCodesSet);
+    if(Object.keys(userCachedDetails).length > 0 && userCachedDetails[HASHES.SPINNING_WHEEL.USER.USER_CODE()] === null){
+        const code = await this.generateUniqueCode();
 
         await this.redis.hset(HASHES.SPINNING_WHEEL.USER.HASH(userId), HASHES.SPINNING_WHEEL.USER.USER_CODE(), code);
         await this.redis.hset(HASHES.SPINNING_WHEEL.CODES(), code, userId);
@@ -236,10 +236,25 @@ async userHasPlayed(userId: string): Promise<boolean> {
           hasPlayed: true,
           code: code
     };
+  }
+      
+      if(Object.keys(userCachedDetails).length === 0) {
+        const code =await this.generateUniqueCode();
+
+        await this.redis.hmset(HASHES.SPINNING_WHEEL.USER.HASH(userId), {
+          [HASHES.SPINNING_WHEEL.USER.USER_CODE()]: code,
+          [HASHES.SPINNING_WHEEL.USER.USER_PLAYED()]: 1,
+        });
+        await this.redis.hset(HASHES.SPINNING_WHEEL.CODES(), code, userId);
+        return {
+          hasPlayed: true,
+          code: code
+        };
+
+
 
       }
 
-      
       
 
 

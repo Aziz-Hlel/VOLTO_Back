@@ -97,18 +97,26 @@ export class EventsService {
     if (!existingEvent)
       throw new Error(`Event with ID ${updateEventDto.id} not found`);
 
-    if (existingEvent.thumbnail.s3Key !== thumbnailKey)
+    console.log('||||||',existingEvent.thumbnail.s3Key, '|||||',thumbnailKey,'|||')
+    console.log('||||||',existingEvent.video.s3Key, '|||||',videoKey,'|||')
+
+    
+    if (existingEvent.thumbnail.s3Key !== thumbnailKey){
+
       await this.mediaService.confirmPendingMedia(
         thumbnailKey,
         updateEventDto.id,
       );
 
-    if (existingEvent.video.s3Key !== videoKey)
+    }
+    if (existingEvent.video.s3Key !== videoKey){
+
       await this.mediaService.confirmPendingMedia(
         updateEventDto.videoKey,
         updateEventDto.id,
       );
 
+    }
     const createdEvent: Event = await this.prisma.event.update({
       where: { id: updateEventDto.id },
       data: {
@@ -117,7 +125,7 @@ export class EventsService {
     });
 
     if (existingEvent.isLadiesNight) {
-      await this.redis.hdel(HASHES.LADIES_NIGHT.DATE.HASH());
+      await this.redis.del(HASHES.LADIES_NIGHT.DATE.HASH());
     }
 
     return createdEvent;
