@@ -113,12 +113,18 @@ export const seedGallery = async()=>{
 
     for (const image of images){
 
-        const galleryInstance =await  prisma.gallery.create({
-            data:{
-                id: image.id,
-                tag: getRandomTag(),
-            }
-        })
+        const galleryInstance = await prisma.gallery.upsert({
+            where: {
+              id: image.id,
+            },
+            create: {
+              id: image.id,
+              tag: getRandomTag(),
+            },
+            update: {
+              tag: getRandomTag(),
+            },
+          });
     
       const img =    await seedMedia({
               s3Key: image.s3Key,
