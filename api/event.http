@@ -1,5 +1,5 @@
 
-@baseUrl = http://localhost:3000/api
+@baseUrl = http://16.24.105.9/api
 
 
 ### Login request
@@ -30,14 +30,14 @@ Authorization: Bearer {{login.response.body.accessToken}}
 
 
 {
-  "id": "b6d1e3f4-5a7c-4f2b-8e1a-9c3b2d4f5a6e",
-  "name": "New Year's Eve",
-  "type": "SPECIAL",
-  "description": "New Year's Eve",
-  "startDate": "2025-12-31T00:00:00.000Z",
-  "endDate": "2025-12-31T23:59:59.999Z",
-  "cronStartDate": null,
-  "cronEndDate": null,
+  "id": "5e3b7f1c-2d4a-4f6e-9a8b-1c2d3e4f5a6b",
+  "name": "Ladies Night",
+  "type": "WEEKLY",
+  "description": "Ladies Night",
+  "startDate": null,
+  "endDate": null,
+  "cronStartDate": "15 13 * * 4",
+  "cronEndDate": "30 13 * * 4",
   "thumbnailKey": "events/new-year-event.jpg",
   "videoKey": "events/volto-video3.mp4"
 }

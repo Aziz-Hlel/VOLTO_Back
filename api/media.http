@@ -92,8 +92,9 @@ Authorization: Bearer {{login.response.body.accessToken}}
     "name": "Ladies Night",
     "type": "WEEKLY",
     "description": "This is a test event for ladies night",
-    "startDate": "2025-08-01T00:19:00.000Z",
-    "endDate": "2025-08-02T00:05:00.999Z",
+    "startDate": null,
+    "endDate": null,
+    "cronStartDate" : ""
     "thumbnailKey": "{{getPresignedUrl.response.body.s3Key}}",
     "videoKey": "{{getPresignedUrl2.response.body.s3Key}}"
 }
