@@ -33,8 +33,6 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
 
-    command: sh -c " until pg_isready -h postgres -p 5432 -U $$POSTGRES_USER; do   echo 'PostgreSQL is unavailable - sleeping';   sleep 2; done; -- pnpm prisma migrate deploy && pnpm run seed && pnpm run start:dev"
-
     depends_on:
       postgres:
         condition: service_started

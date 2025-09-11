@@ -16,7 +16,7 @@ COPY . .
 RUN  pnpm prisma generate
 
 
-RUN pnpm run seed
+# RUN pnpm run seed
 
 
 CMD ["pnpm", "run", "start:dev"] 
