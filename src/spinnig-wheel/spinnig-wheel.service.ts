@@ -1,20 +1,25 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { CreateSpinnigWheel } from './dto/create-spinnig-wheel.dto';
 import { UpdateSpinnigWheelDto } from './dto/update-spinnig-wheel.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Redis } from 'ioredis';
+import { HASHES } from 'src/redis/hashes';
+import { ActiveSpinningWheelResponse as ActiveSpinningWheelResponse, UnactiveSpinningWheelResponse } from './dto/active-spinning-wheel.dto';
 
 @Injectable()
 export class SpinnigWheelService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService,
+     @Inject('REDIS_CLIENT') private readonly redis: Redis,
+  ) {}
 
   
-
-  async isSpinningWheelAvailable() {
-    const spinnigWheel = await this.prisma.spinningWheel.findFirst({
+  async updateWheelCache(): Promise<ActiveSpinningWheelResponse | UnactiveSpinningWheelResponse> {
+      const spinnigWheel = await this.prisma.spinningWheel.findFirst({
       where: {
         isActive: true,
       },
@@ -22,15 +27,58 @@ export class SpinnigWheelService {
 
     if (!spinnigWheel) throw new InternalServerErrorException('No active spinnig wheel instance found');
 
+    const spinningWheelHashName = HASHES.SPINNING_WHEEL.DATE.HASH();
+    await this.redis.hmset(spinningWheelHashName, {
+      [HASHES.SPINNING_WHEEL.DATE.START_DATE()]: spinnigWheel.startDate.toISOString(),
+      [HASHES.SPINNING_WHEEL.DATE.END_DATE()]: spinnigWheel.endDate.toISOString(),
+      [HASHES.SPINNING_WHEEL.DATE.NAME()]: spinnigWheel.name
+    },);
+
+    const redisTtl : number = 3600 * 24 * 365;
+    await this.redis.expire(spinningWheelHashName, redisTtl);
+
     const currentDate = new Date();
+    
+    if ( currentDate < spinnigWheel.startDate  || currentDate > spinnigWheel.endDate )
+      return {
+    isAvailable: false
+  };
 
-    if (
-      spinnigWheel.startDate > currentDate ||
-      spinnigWheel.endDate < currentDate
+    return {
+      name: spinnigWheel.name,
+      startDate: spinnigWheel.startDate,
+      endDate: spinnigWheel.endDate,
+      isAvailable: true
+    };
+  }
+
+  async isSpinningWheelAvailable(): Promise<ActiveSpinningWheelResponse | UnactiveSpinningWheelResponse>{
+
+    let [strStartDate, strEndDate, spinnigWheelName] = await this.redis.hmget(
+      HASHES.SPINNING_WHEEL.DATE.HASH(),
+      HASHES.SPINNING_WHEEL.DATE.START_DATE(),
+      HASHES.SPINNING_WHEEL.DATE.END_DATE(),
+      HASHES.SPINNING_WHEEL.DATE.NAME(),
     )
-      return null;
 
-    return spinnigWheel;
+    if (!strStartDate || !strEndDate || !spinnigWheelName) return  await this.updateWheelCache();
+
+    const currentDate = new Date();
+    
+    const startDate = new Date(strStartDate);
+    const endDate = new Date(strEndDate);
+
+    if ( currentDate < startDate  || currentDate > endDate )
+      return {
+        isAvailable: false
+      };
+
+    return {
+      name: spinnigWheelName,
+      startDate,
+      endDate,
+      isAvailable:true
+    };
 
   }
 
@@ -62,7 +110,7 @@ export class SpinnigWheelService {
     });
   }
 
-  findActive = async () => {
+  getWheel = async () => {
     const spinnigWheel = await this.prisma.spinningWheel.findFirst({
       where: {
         isActive: true,
@@ -90,17 +138,34 @@ export class SpinnigWheelService {
         'No active spinnig wheel found with this id',
       );
 
-    const updatedWheel = await this.prisma.spinningWheel.update({
-      where: {
-        id: updateSpinnigWheelDto.id,
-      },
+    const updatedWheel =await this.prisma.spinningWheel.update({
+      where: { id: updateSpinnigWheelDto.id },
       data: {
         name: updateSpinnigWheelDto.name,
         startDate: updateSpinnigWheelDto.startDate,
         endDate: updateSpinnigWheelDto.endDate,
-        isActive: true,
+        rewardList: {
+          update: updateSpinnigWheelDto.rewardList.map(r => ({
+            where: { id: r.id },
+            data: { name: r.name },
+          })),
+        },
       },
+      include: { rewardList: true },
     });
+
+    this.redis.del(HASHES.SPINNING_WHEEL.DATE.HASH());
+
     return updatedWheel;
   };
+
+
+
+
+
+  async getQuota(userId: string){
+    const user =await this.redis.hgetall(HASHES.SPINNING_WHEEL.USER.HASH(userId));
+    if(Object.keys(user).length === 0 )
+      return 0;
+  }
 }

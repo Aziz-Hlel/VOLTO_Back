@@ -30,6 +30,21 @@ export const HASHES = {
       CRON_END_DATE: () => 'end_date',
     },
   },
+
+  SPINNING_WHEEL: {
+    USER:{
+      HASH: (userId: string) => `spinning_wheel:user:${userId}`,
+      ALL_HASH: () => 'spinning_wheel:user:*',
+      USER_CODE: () => 'user_code',
+      USER_PLAYED: () => 'user_played',
+    },
+    DATE: {
+      HASH: () => 'spinning_wheel:date',
+      START_DATE: () => 'start_date',
+      END_DATE: () => 'end_date',
+      NAME : () => 'name',
+    },
+  },
 } as const;
 
 export type HASHES3 = keyof typeof HASHES3;

@@ -17,7 +17,7 @@ export class SpinnigWheelRewardService {
   ) {}
 
   create = async (createSpinnigWheelRewardDto: CreateSpinnigWheelRewardDto) => {
-    const spinnigWheel = await this.spinnigWheelService.findActive();
+    const spinnigWheel = await this.spinnigWheelService.getWheel();
 
     if (!spinnigWheel)
       throw new InternalServerErrorException(

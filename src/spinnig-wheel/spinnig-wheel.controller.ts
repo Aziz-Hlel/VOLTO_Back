@@ -24,20 +24,23 @@ export class SpinnigWheelController {
 
   @UseGuards(JwtAccessGuard)
   @HttpCode(200)
-  @Get('admin')
+  @Get('')
   async getisActive() {
-    const spinnigWheel = await this.spinnigWheelService.findActive();
+
+    const spinnigWheel = await this.spinnigWheelService.isSpinningWheelAvailable();
 
     return spinnigWheel;
   }
 
 
 
-  @UseGuards(JwtAccessGuard)
+  @UseGuards(JwtAccessGuard,RolesGuard)
+  @Roles(Role.ADMIN,Role.SUPER_ADMIN)
   @HttpCode(200)
-  @Get('admin')
+  @Get('admin/instance')
   async adminGetSpinnigWheel() {
-    const spinnigWheel = await this.spinnigWheelService.findActive();
+
+    const spinnigWheel = await this.spinnigWheelService.getWheel();
 
     return spinnigWheel;
   }
@@ -45,7 +48,7 @@ export class SpinnigWheelController {
   @UseGuards(JwtAccessGuard, RolesGuard)
   @Roles(Role.ADMIN,Role.SUPER_ADMIN)
   @HttpCode(200)
-  @Patch()
+  @Patch('admin/instance')
   async update(
     @Param('id') id: string,
     @Body() updateSpinnigWheelDto: UpdateSpinnigWheelDto,
