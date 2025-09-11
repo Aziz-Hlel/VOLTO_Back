@@ -16,9 +16,6 @@ COPY . .
 RUN  pnpm prisma generate
 
 
-RUN pnpm prisma migrate deploy
-
-
 RUN pnpm run seed
 
 
