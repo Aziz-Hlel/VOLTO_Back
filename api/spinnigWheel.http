@@ -14,14 +14,6 @@ Content-Type: application/json
 }
 
 
-### Get SpinningWheel
-# @name getSpinnigWheel
-GET      {{baseUrl}}/spinnig-wheel/
-Content-Type: application/json
-Authorization: Bearer {{login.response.body.accessToken}}
-
-
-
 
 ### Get SpinningWheel Instance As Admin
 # @name getSpinnigWheelInstance
@@ -67,6 +59,15 @@ Authorization: Bearer {{login.response.body.accessToken}}
         }
     ]
 }
+
+
+
+
+### Get SpinningWheel
+# @name getSpinnigWheel
+GET      {{baseUrl}}/spinnig-wheel/
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
 
 
 

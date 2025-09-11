@@ -54,7 +54,7 @@ Authorization: Bearer {{login.response.body.accessToken}}
 
 
 ### Get All Events
-# @name getEvent
+# @name getEvents
 GET     {{baseUrl}}/events?eventType=WEEKLY
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.accessToken}}

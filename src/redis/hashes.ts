@@ -44,6 +44,8 @@ export const HASHES = {
       END_DATE: () => 'end_date',
       NAME : () => 'name',
     },
+
+    CODES : () => 'spinning_wheel:codes',
   },
 } as const;
 

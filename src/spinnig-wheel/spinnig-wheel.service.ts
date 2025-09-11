@@ -10,6 +10,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Redis } from 'ioredis';
 import { HASHES } from 'src/redis/hashes';
 import { ActiveSpinningWheelResponse as ActiveSpinningWheelResponse, UnactiveSpinningWheelResponse } from './dto/active-spinning-wheel.dto';
+import { UserQuotaResponseDto } from './dto/user-quota-response.dto';
 
 @Injectable()
 export class SpinnigWheelService {
@@ -163,9 +164,87 @@ export class SpinnigWheelService {
 
 
 
-  async getQuota(userId: string){
+  async getQuota(userId: string): Promise<UserQuotaResponseDto> {
+
+    const isSpinningWheelAvailable = await this.isSpinningWheelAvailable();
+
+    if (!isSpinningWheelAvailable.isAvailable)
+      throw new BadRequestException('Spinning wheel is not available');
+
     const user =await this.redis.hgetall(HASHES.SPINNING_WHEEL.USER.HASH(userId));
     if(Object.keys(user).length === 0 )
-      return 0;
+      return {
+    hasPlayed: false,
+    code: null
+  };
+    return {
+      hasPlayed: true,
+      code: user[HASHES.SPINNING_WHEEL.USER.USER_CODE()]
+    }
+
+
+}
+
+  generateUniqueCode(existingCodes: Set<string>): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const codeLength = 6;
+
+    let code: string;
+
+    do {
+      code = Array.from(
+        { length: codeLength },
+        () => chars[Math.floor(Math.random() * chars.length)],
+      ).join('');
+    } while (existingCodes.has(code));
+
+    return code;
   }
+
+
+
+async userHasPlayed(userId: string): Promise<boolean> {
+
+  const userCachedDetails = await this.redis.hgetall(HASHES.SPINNING_WHEEL.USER.HASH(userId));
+  return Object.keys(userCachedDetails).length > 0
+
+}
+
+  async generateCode({userId, wheelRewardId}:{userId: string, wheelRewardId: string}){ 
+
+    const isSpinningWheelAvailable = await this.isSpinningWheelAvailable();
+
+    if (!isSpinningWheelAvailable.isAvailable)
+      throw new BadRequestException('Spinning wheel is not available');
+
+
+    const userCachedDetails = await this.redis.hgetall(HASHES.SPINNING_WHEEL.USER.HASH(userId));
+
+    if(Object.keys(userCachedDetails).length > 0){
+      if (userCachedDetails[HASHES.SPINNING_WHEEL.USER.USER_CODE()] !== null)
+        return {
+          hasPlayed: true,
+          code: userCachedDetails[HASHES.SPINNING_WHEEL.USER.USER_CODE()]
+        }
+        const existingCodes = await this.redis.hkeys(HASHES.SPINNING_WHEEL.CODES());
+        const existingCodesSet = new Set(existingCodes);
+        const code = this.generateUniqueCode(existingCodesSet);
+
+        await this.redis.hset(HASHES.SPINNING_WHEEL.USER.HASH(userId), HASHES.SPINNING_WHEEL.USER.USER_CODE(), code);
+        await this.redis.hset(HASHES.SPINNING_WHEEL.CODES(), code, userId);
+        return {
+          hasPlayed: true,
+          code: code
+    };
+
+      }
+
+      
+      
+
+
+  }
+
+
+  
 }
