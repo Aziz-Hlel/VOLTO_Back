@@ -8,6 +8,7 @@ import {
   Delete,
   HttpCode,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { SpinnigWheelService } from './spinnig-wheel.service';
 import { CreateSpinnigWheel } from './dto/create-spinnig-wheel.dto';
@@ -20,7 +21,7 @@ import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { AuthUser } from 'src/users/Dto/AuthUser';
 
 
-@Controller('spinnig-wheel')
+@Controller('spinning-wheel')
 export class SpinnigWheelController {
   constructor(private readonly spinnigWheelService: SpinnigWheelService) {}
 
@@ -78,13 +79,29 @@ export class SpinnigWheelController {
   @UseGuards(JwtAccessGuard)
   @HttpCode(200)
   @Post('generate-code')
-  async generateCode(@CurrentUser() user: AuthUser, @Body() {id: wheelRewardId}:  {id:string}) {
+  async generateCode(@CurrentUser() user: AuthUser, @Body() { wheelRewardId}:  {wheelRewardId:string}) {
     
-    
+    const response = await this.spinnigWheelService.generateCode({userId: user.id, wheelRewardId: wheelRewardId});
+
+    return response;
 
   }
 
+  
 
+  @UseGuards(JwtAccessGuard, RolesGuard)
+  @Roles(Role.WAITER)
+  @HttpCode(200)
+  @Post('redeem-code')
+  async redeemCode(@CurrentUser() user: AuthUser, @Body() {code}:  {code:string}) {
+
+    if(!code) throw new BadRequestException('Code is required');
+
+    const response = await this.spinnigWheelService.redeemCode(code);
+
+    return response;
+
+  }
 
 
 

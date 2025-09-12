@@ -128,8 +128,28 @@ export class EventsService {
       await this.redis.del(HASHES.LADIES_NIGHT.DATE.HASH());
     }
 
+    if (existingEvent.isLadiesNight &&( existingEvent.cronStartDate !== eventDto.cronStartDate || existingEvent.cronEndDate !== eventDto.cronEndDate)) {
+     await this.deleteUserHashes();
+    }
+
     return createdEvent;
   };
+
+
+    async deleteUserHashes() {
+      const pattern = HASHES.LADIES_NIGHT.USER.ALL_HASH();
+      let cursor = '0';
+      
+      do {
+        const [newCursor, keys] = await this.redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+        cursor = newCursor;
+
+        if (keys.length > 0) {
+          await this.redis.del(...keys); // delete all found keys
+        }
+      } while (cursor !== '0');
+
+    } 
 
   remove(id: string) {
     return `This action removes a #${id} event`;

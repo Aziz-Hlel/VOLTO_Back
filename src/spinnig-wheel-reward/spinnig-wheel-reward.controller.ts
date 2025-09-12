@@ -33,6 +33,8 @@ export class SpinnigWheelRewardController {
   async update(
     @Body() updateSpinnigWheelRewardDto: UpdateSpinnigWheelRewardDto,
   ) {
+
+    console.log('updateSpinnigWheelRewardDto', updateSpinnigWheelRewardDto);
     const updatedReward = await this.spinnigWheelRewardService.update(
       updateSpinnigWheelRewardDto,
     );

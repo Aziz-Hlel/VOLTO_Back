@@ -9,17 +9,20 @@ import { UpdateSpinnigWheelDto } from './dto/update-spinnig-wheel.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Redis } from 'ioredis';
 import { HASHES } from 'src/redis/hashes';
-import { ActiveSpinningWheelResponse as ActiveSpinningWheelResponse, UnactiveSpinningWheelResponse } from './dto/active-spinning-wheel.dto';
+import { IsSpinningWheelAvailableResponse,  } from './dto/active-spinning-wheel.dto';
 import { UserQuotaResponseDto } from './dto/user-quota-response.dto';
+import { SpinnigWheelRewardService } from 'src/spinnig-wheel-reward/spinnig-wheel-reward.service';
+import { RedeemCodeResponseDto } from './dto/RedeemCodeResponse.dto';
 
 @Injectable()
 export class SpinnigWheelService {
   constructor(private readonly prisma: PrismaService,
      @Inject('REDIS_CLIENT') private readonly redis: Redis,
+     private readonly spinnigWheelRewardService: SpinnigWheelRewardService
   ) {}
 
   
-  async updateWheelCache(): Promise<ActiveSpinningWheelResponse | UnactiveSpinningWheelResponse> {
+  async updateWheelCache(): Promise<IsSpinningWheelAvailableResponse> {
       const spinnigWheel = await this.prisma.spinningWheel.findFirst({
       where: {
         isActive: true,
@@ -53,7 +56,7 @@ export class SpinnigWheelService {
     };
   }
 
-  async isSpinningWheelAvailable(): Promise<ActiveSpinningWheelResponse | UnactiveSpinningWheelResponse>{
+  async isSpinningWheelAvailable(): Promise<IsSpinningWheelAvailableResponse>{
 
     let [strStartDate, strEndDate, spinnigWheelName] = await this.redis.hmget(
       HASHES.SPINNING_WHEEL.DATE.HASH(),
@@ -127,7 +130,26 @@ export class SpinnigWheelService {
   };
   
 
+  async deleteUserHashes() {
+  const pattern = HASHES.SPINNING_WHEEL.USER.ALL_HASH();
+  let cursor = '0';
+  
+  do {
+    const [newCursor, keys] = await this.redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+    cursor = newCursor;
+
+    if (keys.length > 0) {
+      await this.redis.del(...keys); // delete all found keys
+    }
+  } while (cursor !== '0');
+
+  } 
+
   update = async (updateSpinnigWheelDto: UpdateSpinnigWheelDto) => {
+
+    // if((await this.isSpinningWheelAvailable()).isAvailable)
+    //   throw new BadRequestException('Cannot update while spinning wheel event is active');
+
     const spinnigWheel = await this.prisma.spinningWheel.findFirst({
       where: {
         id: updateSpinnigWheelDto.id,
@@ -156,10 +178,12 @@ export class SpinnigWheelService {
     });
 
     this.redis.del(HASHES.SPINNING_WHEEL.DATE.HASH());
+    this.spinnigWheelRewardService.updateRewardsCache(updatedWheel.rewardList);
+    if ( spinnigWheel.startDate !== updatedWheel.startDate || spinnigWheel.endDate !== updatedWheel.endDate )
+      this.deleteUserHashes();
 
     return updatedWheel;
   };
-
 
 
 
@@ -175,11 +199,19 @@ export class SpinnigWheelService {
     if(Object.keys(user).length === 0 )
       return {
     hasPlayed: false,
-    code: null
+    code: null,
+    codeRedeemed: false
   };
+  if(user[HASHES.SPINNING_WHEEL.USER.USER_REDEEMED_CODE()]==='true')
     return {
       hasPlayed: true,
-      code: user[HASHES.SPINNING_WHEEL.USER.USER_CODE()]
+      code: null,
+      codeRedeemed: true
+    }
+    return {
+      hasPlayed: true,
+      code: user[HASHES.SPINNING_WHEEL.USER.USER_CODE()],
+      codeRedeemed: false
     }
 
 
@@ -204,15 +236,69 @@ export class SpinnigWheelService {
   }
 
 
-
-async userHasPlayed(userId: string): Promise<boolean> {
-
-  const userCachedDetails = await this.redis.hgetall(HASHES.SPINNING_WHEEL.USER.HASH(userId));
-  return Object.keys(userCachedDetails).length > 0
-
-}
-
   async generateCode({userId, wheelRewardId}:{userId: string, wheelRewardId: string}){ 
+
+    const isSpinningWheelAvailable = await this.isSpinningWheelAvailable();
+
+    if (!isSpinningWheelAvailable.isAvailable)
+      throw new BadRequestException('Spinning wheel is not available');
+    
+    const isRewardExists = await this.spinnigWheelRewardService.isRewardIdExists(wheelRewardId);
+
+    if(!isRewardExists)
+      throw new BadRequestException('Reward does not exist');
+    
+
+    const userCachedDetails = await this.redis.hgetall(HASHES.SPINNING_WHEEL.USER.HASH(userId));
+
+
+    if(userCachedDetails[HASHES.SPINNING_WHEEL.USER.USER_REDEEMED_CODE()]==='true')
+      throw new BadRequestException('Code already redeemed');
+
+    if(userCachedDetails[HASHES.SPINNING_WHEEL.USER.USER_CODE()])
+        return {
+          hasPlayed: true,
+          code: userCachedDetails[HASHES.SPINNING_WHEEL.USER.USER_CODE()]
+        }
+        
+    const code = await this.generateUniqueCode();
+
+    
+    const endDate = new Date(isSpinningWheelAvailable.endDate);
+    const now = new Date();
+    
+    const ttlSeconds = Math.floor((endDate.getTime() - now.getTime()) / 1000);
+    
+    await this.redis.hmset(HASHES.SPINNING_WHEEL.USER.HASH(userId), {
+      [HASHES.SPINNING_WHEEL.USER.USER_CODE()]: code,
+      [HASHES.SPINNING_WHEEL.USER.USER_REDEEMED_CODE()]: 'false',
+      [HASHES.SPINNING_WHEEL.USER.REWARD_ID()]: wheelRewardId
+    });
+    
+    await this.redis.hset(HASHES.SPINNING_WHEEL.CODES(), code, userId);
+    
+    await this.redis.expire(
+        HASHES.SPINNING_WHEEL.USER.HASH(userId),
+        ttlSeconds
+      );
+
+    await this.redis.expire(
+        HASHES.SPINNING_WHEEL.CODES(),
+        ttlSeconds
+      );
+
+    return {
+      hasPlayed: true,
+      code: code
+    }
+
+
+  
+  }
+
+      
+
+  async redeemCode(code: string): Promise<RedeemCodeResponseDto> {
 
     const isSpinningWheelAvailable = await this.isSpinningWheelAvailable();
 
@@ -220,45 +306,50 @@ async userHasPlayed(userId: string): Promise<boolean> {
       throw new BadRequestException('Spinning wheel is not available');
 
 
+
+    const userId = await this.redis.hget(HASHES.SPINNING_WHEEL.CODES(), code);
+
+    if(!userId)
+      throw new BadRequestException('Invalid code, User with this code not found');
+
+
     const userCachedDetails = await this.redis.hgetall(HASHES.SPINNING_WHEEL.USER.HASH(userId));
 
-    if(Object.keys(userCachedDetails).length > 0 && userCachedDetails[HASHES.SPINNING_WHEEL.USER.USER_CODE()] !== null)
-        return {
-          hasPlayed: true,
-          code: userCachedDetails[HASHES.SPINNING_WHEEL.USER.USER_CODE()]
-        }
-    if(Object.keys(userCachedDetails).length > 0 && userCachedDetails[HASHES.SPINNING_WHEEL.USER.USER_CODE()] === null){
-        const code = await this.generateUniqueCode();
 
-        await this.redis.hset(HASHES.SPINNING_WHEEL.USER.HASH(userId), HASHES.SPINNING_WHEEL.USER.USER_CODE(), code);
-        await this.redis.hset(HASHES.SPINNING_WHEEL.CODES(), code, userId);
-        return {
-          hasPlayed: true,
-          code: code
-    };
-  }
-      
-      if(Object.keys(userCachedDetails).length === 0) {
-        const code =await this.generateUniqueCode();
+    if(userCachedDetails[HASHES.SPINNING_WHEEL.USER.USER_REDEEMED_CODE()]==='true')
+      throw new BadRequestException('Code already redeemed');
 
-        await this.redis.hmset(HASHES.SPINNING_WHEEL.USER.HASH(userId), {
-          [HASHES.SPINNING_WHEEL.USER.USER_CODE()]: code,
-          [HASHES.SPINNING_WHEEL.USER.USER_PLAYED()]: 1,
-        });
-        await this.redis.hset(HASHES.SPINNING_WHEEL.CODES(), code, userId);
-        return {
-          hasPlayed: true,
-          code: code
-        };
+
+    const userRewardId = userCachedDetails[HASHES.SPINNING_WHEEL.USER.REWARD_ID()];
+
+
+    const isRewardExists = await this.spinnigWheelRewardService.isRewardIdExists(userRewardId);
+
+    if(!isRewardExists)
+      throw new BadRequestException('Reward of the code not found');
 
 
 
-      }
+    await this.redis.hmset(HASHES.SPINNING_WHEEL.USER.HASH(userId), {
+      [HASHES.SPINNING_WHEEL.USER.USER_REDEEMED_CODE()]: 'true',
+      [HASHES.SPINNING_WHEEL.USER.REWARD_ID()]: null,
+      [HASHES.SPINNING_WHEEL.USER.USER_CODE()]: null
+    });
 
-      
+
+    await this.redis.hdel(HASHES.SPINNING_WHEEL.CODES(), code);
+
+    const rewardName = await this.redis.hget(HASHES.SPINNING_WHEEL.REWARDS.REWARD_NAME(), userRewardId);
+
+    return {
+      hasRedeemed: true,
+      reward: rewardName as string
+    }
+
 
 
   }
+  
 
 
   

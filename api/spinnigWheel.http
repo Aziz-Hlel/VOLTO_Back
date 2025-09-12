@@ -17,7 +17,7 @@ Content-Type: application/json
 
 ### Get SpinningWheel Instance As Admin
 # @name getSpinnigWheelInstance
-GET      {{baseUrl}}/spinnig-wheel/admin/instance
+GET      {{baseUrl}}/spinning-wheel/admin/instance
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.accessToken}}
 
@@ -26,7 +26,7 @@ Authorization: Bearer {{login.response.body.accessToken}}
 
 ### Get One Wheel Reward
 # @name updateWheelRewards
-PATCH       {{baseUrl}}/spinnig-wheel/admin/instance
+PATCH       {{baseUrl}}/spinning-wheel/admin/instance
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.accessToken}}
 
@@ -34,8 +34,8 @@ Authorization: Bearer {{login.response.body.accessToken}}
 {
     "id": "{{getSpinnigWheelInstance.response.body.id}}",
     "name":"Spinning Wheel Name Updated",
-    "startDate": "{{$datetime iso8601}}",
-    "endDate": "2026-09-11T11:04:10.161Z",
+    "startDate": "2025-09-12T11:35:10.161Z",
+    "endDate": "2025-09-12T11:38:10.161Z",
     "rewardList":[
         {
             "id": "{{getSpinnigWheelInstance.response.body.rewardList[0].id}}",
@@ -55,7 +55,7 @@ Authorization: Bearer {{login.response.body.accessToken}}
         },
           {
             "id": "{{getSpinnigWheelInstance.response.body.rewardList[4].id}}",
-            "name": "Reward 5 updated from Rest Client"
+            "name": "Reward 5555 updated from Rest Client"
         }
     ]
 }
@@ -63,21 +63,16 @@ Authorization: Bearer {{login.response.body.accessToken}}
 
 
 
-### Get SpinningWheel
+### Is SpinningWheel Available
 # @name getSpinnigWheel
-GET      {{baseUrl}}/spinnig-wheel/
+GET      {{baseUrl}}/spinning-wheel/
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.accessToken}}
 
 
-
-
-
-
-
 ### Get Wheel Rewards
 # @name getWheelRewards
-GET      {{baseUrl}}/spinnig-wheel-reward/
+GET      {{baseUrl}}/spinning-wheel-reward/
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.accessToken}}
 
@@ -85,7 +80,7 @@ Authorization: Bearer {{login.response.body.accessToken}}
 
 ### Get One Wheel Reward
 # @name updateWheelRewards
-PATCH       {{baseUrl}}/spinnig-wheel-reward/
+PATCH       {{baseUrl}}/spinning-wheel-reward/
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.accessToken}}
 
@@ -93,26 +88,59 @@ Authorization: Bearer {{login.response.body.accessToken}}
 {
     "rewards":[
         {
-            "id": "{{getSpinnigWheel.response.body.rewardList[0].id}}",
+            "id": "{{getWheelRewards.response.body.rewardsList[0].id}}",
             "name": "Reward 1 updated from Rest Client"
         },
           {
-            "id": "{{getSpinnigWheel.response.body.rewardList[1].id}}",
+            "id": "{{getWheelRewards.response.body.rewardsList[1].id}}",
             "name": "Reward 2 updated from Rest Client"
         },
           {
-            "id": "{{getSpinnigWheel.response.body.rewardList[2].id}}",
+            "id": "{{getWheelRewards.response.body.rewardsList[2].id}}",
             "name": "Reward 3 updated from Rest Client"
         },
           {
-            "id": "{{getSpinnigWheel.response.body.rewardList[3].id}}",
+            "id": "{{getWheelRewards.response.body.rewardsList[3].id}}",
             "name": "Reward 4 updated from Rest Client"
         },
           {
-            "id": "{{getSpinnigWheel.response.body.rewardList[4].id}}",
-            "name": "Reward 5 updated from Rest Client"
+            "id": "{{getWheelRewards.response.body.rewardsList[4].id}}",
+            "name": "Rbe7t l 3asba"
         }
     ]
+}
+
+
+### Get User SpinnigWheel Quota
+# @name getUserSpinningWheelQuota
+GET      {{baseUrl}}/spinning-wheel/get-quota
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+
+
+
+### Generate user code of a reward
+# @name generateRewardCode
+POST      {{baseUrl}}/spinning-wheel/generate-code
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+{
+  "wheelRewardId" :"{{getWheelRewards.response.body.rewardsList[4].id}}"
+}
+
+
+
+
+### Redeem User Code (Waiter Role)
+# @name generateRewardCode
+POST      {{baseUrl}}/spinning-wheel/redeem-code
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+
+{
+  "code" :"{{getUserSpinningWheelQuota.response.body.code}}"
 }
 
 

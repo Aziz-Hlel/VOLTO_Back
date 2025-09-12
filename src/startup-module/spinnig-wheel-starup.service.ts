@@ -1,5 +1,7 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import Redis from 'ioredis';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { HASHES } from 'src/redis/hashes';
 import { SpinnigWheelRewardService } from 'src/spinnig-wheel-reward/spinnig-wheel-reward.service';
 import { SpinnigWheelService } from 'src/spinnig-wheel/spinnig-wheel.service';
 
@@ -11,6 +13,7 @@ export class SpinningWheelInitService implements OnApplicationBootstrap {
     private readonly prisma: PrismaService,
     private readonly spinnigWheelService: SpinnigWheelService,
     private readonly spinnigWheelRewardService: SpinnigWheelRewardService,
+    @Inject('REDIS_CLIENT') private readonly redis: Redis,
   ) {}
 
   async onApplicationBootstrap() {
@@ -34,6 +37,12 @@ export class SpinningWheelInitService implements OnApplicationBootstrap {
       });
       spinnigWheelRewards.push(newReward);
     }
+
+    this.spinnigWheelRewardService.updateRewardsCache(spinnigWheelRewards);
+
+    
+
+
 
     this.logger.log('Spinning Wheel Initialized');
   }

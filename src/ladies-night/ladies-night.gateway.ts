@@ -25,7 +25,6 @@ import { LadiesNightActiveGuard } from './guards/LadiesNightActive.guard';
 
 export interface AuthenticatedSocket extends Socket {
   user?: any;
-  userId?: string;
 }
 
 interface BaseEventResponse {

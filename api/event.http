@@ -1,5 +1,5 @@
 
-@baseUrl = http://localhost:3000/api
+@baseUrl = http://16.24.105.9/api
 
 
 ### Login request
@@ -36,8 +36,8 @@ Authorization: Bearer {{login.response.body.accessToken}}
   "description": "Ladies Night",
   "startDate": null,
   "endDate": null,
-  "cronStartDate": "15 15 * * 4",
-  "cronEndDate": "30 15 * * 4",
+  "cronStartDate": "01 17 * * 4",
+  "cronEndDate": "10 17 * * 4",
   "thumbnailKey": "events/ladies-night-wallpaper.jpg",
   "videoKey": "events/volto-brunch-1.mp4"
 }

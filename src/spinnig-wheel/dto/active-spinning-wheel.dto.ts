@@ -1,11 +1,5 @@
 
 
-export class UnactiveSpinningWheelResponse {
-    isAvailable: boolean;
-}
-
-export class ActiveSpinningWheelResponse extends UnactiveSpinningWheelResponse {
-    name: string|null;
-    startDate: Date;
-    endDate: Date;
-}
+export type IsSpinningWheelAvailableResponse =
+    | { isAvailable: false }
+    | { isAvailable: true; name: string|null; startDate: Date; endDate: Date };
