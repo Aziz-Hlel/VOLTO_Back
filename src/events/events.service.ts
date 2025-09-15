@@ -97,8 +97,6 @@ export class EventsService {
     if (!existingEvent)
       throw new Error(`Event with ID ${updateEventDto.id} not found`);
 
-    console.log('||||||',existingEvent.thumbnail.s3Key, '|||||',thumbnailKey,'|||')
-    console.log('||||||',existingEvent.video.s3Key, '|||||',videoKey,'|||')
 
     
     if (existingEvent.thumbnail.s3Key !== thumbnailKey){
@@ -117,7 +115,7 @@ export class EventsService {
       );
 
     }
-    const createdEvent: Event = await this.prisma.event.update({
+    const updatedEvent: Event = await this.prisma.event.update({
       where: { id: updateEventDto.id },
       data: {
         ...eventDto,
@@ -128,11 +126,11 @@ export class EventsService {
       await this.redis.del(HASHES.LADIES_NIGHT.DATE.HASH());
     }
 
-    if (existingEvent.isLadiesNight &&( existingEvent.cronStartDate !== eventDto.cronStartDate || existingEvent.cronEndDate !== eventDto.cronEndDate)) {
+    if (existingEvent.isLadiesNight &&( existingEvent.cronStartDate !== updatedEvent.cronStartDate || existingEvent.cronEndDate !== updatedEvent.cronEndDate)) {
      await this.deleteUserHashes();
     }
 
-    return createdEvent;
+    return updatedEvent;
   };
 
 

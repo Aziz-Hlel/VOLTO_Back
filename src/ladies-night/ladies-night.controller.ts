@@ -12,6 +12,6 @@ export class LadiesNightController {
         if (!isLadiesNightActive) return { isLadiesNightActive };
 
         const response = await this.ladiesNightService.getDrinkQuota();
-        return { isLadiesNightActive, response };
+        return { isLadiesNightActive, ...response };
     }
 }
