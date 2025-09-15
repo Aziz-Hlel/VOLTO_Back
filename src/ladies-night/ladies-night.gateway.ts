@@ -161,7 +161,7 @@ export class LadiesNightGateway {
   @SubscribeMessage('consume-drink')
   async consumeDrink(
     @ConnectedSocket() socket: authSocket,
-    @MessageBody() code: string,
+    @MessageBody() {code}:{code:string},
   ) {
     try {
       if (!code) throw new BadRequestException('No code provided');
