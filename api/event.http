@@ -36,8 +36,8 @@ Authorization: Bearer {{login.response.body.accessToken}}
   "description": "Ladies Night",
   "startDate": null,
   "endDate": null,
-  "cronStartDate": "50 9 * * 1",
-  "cronEndDate": "0 10 * * 1",
+  "cronStartDate": "20 14 * * 1",
+  "cronEndDate": "45 14 * * 1",
   "thumbnailKey": "events/ladies-night-wallpaper.jpg",
   "videoKey": "events/volto-brunch-1.mp4"
 }

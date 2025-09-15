@@ -4,6 +4,7 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 import {
   BadRequestException,
@@ -164,7 +165,7 @@ export class LadiesNightGateway {
     @MessageBody() {code}:{code:string},
   ) {
     try {
-      if (!code) throw new BadRequestException('No code provided');
+      if (!code) throw new WsException('No code provided');
 
       const response = await this.ladiesNightService.consumeDrink(code);
 
