@@ -22,7 +22,6 @@ import REDIS_KEYS from 'src/redis/redisKeys';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
-import { LadiesNightActiveGuard } from './guards/LadiesNightActive.guard';
 
 export interface AuthenticatedSocket extends Socket {
   user?: any;

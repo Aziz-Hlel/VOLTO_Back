@@ -10,14 +10,22 @@ export class WsJwtGuard implements CanActivate {
   constructor(private jwtService: JwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const client: Socket = context.switchToWs().getClient();
+    const client = context.switchToWs().getClient<Socket>();
+    const eventName = context.switchToWs().getPattern();
+
+    const returnEvent = {
+      "consume-drink": "drink-consumed",
+      "get-quota": "drink-quota",
+      "generate-code": "get-code",
+    };
 
     try {
       const token = this.extractToken(client);
 
       if (!token) {
+        client.emit(returnEvent[eventName], { success: false, error: 'No token provided' });
         throw new WsException('Unauthorized');
-      }
+      };
 
       const payload = this.jwtService.verify(token, {
         secret: ENV.JWT_ACCESS_SECRET,
@@ -32,6 +40,7 @@ export class WsJwtGuard implements CanActivate {
       return true;
     } catch (error) {
       console.log('WS Auth Error:', error.message);
+      client.emit(returnEvent[eventName], { success: false, error: 'JWT verification failed' });
       throw new WsException('Unauthorized');
     }
   }
