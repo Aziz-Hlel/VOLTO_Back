@@ -26,7 +26,7 @@ export class LadiesNightActiveGuard implements CanActivate {
     if (!isLadiesNightActive)
       client.emit(returnEvent[eventName], {
         success: false,
-        message: 'Ladies Night is not active',
+        error: 'Ladies Night is not active',
       });
 
     return true;
