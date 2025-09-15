@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { HASHES, HASHES3 } from 'src/redis/hashes';
 import REDIS_KEYS from 'src/redis/redisKeys';
 import cronParser from 'cron-parser';
+import { WsException } from '@nestjs/websockets';
 
 @Injectable()
 export class LadiesNightService {
@@ -152,7 +153,7 @@ export class LadiesNightService {
   async consumeDrink(code: string) {
 
     const isLadiesNightActive = await this.isLadiesNightActive2();
-    if(!isLadiesNightActive) throw new BadRequestException('Ladies Night is not active');
+    if(!isLadiesNightActive) throw new WsException('Ladies Night is not active');
 
 
     const userId = await this.redis.hget(HASHES.LADIES_NIGHT.CODES(), code);
