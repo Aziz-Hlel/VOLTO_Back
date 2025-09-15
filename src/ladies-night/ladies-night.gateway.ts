@@ -33,7 +33,7 @@ interface BaseEventResponse {
   error_message?: string;
 }
 
-@UseGuards(LadiesNightActiveGuard)
+// @UseGuards(LadiesNightActiveGuard)
 @WebSocketGateway({ cors: true, namespace: '/ladies-night' })
 export class LadiesNightGateway {
   constructor(
