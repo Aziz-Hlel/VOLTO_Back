@@ -77,10 +77,22 @@ export class LadiesNightService {
     await this.redis.expire(HASHES.LADIES_NIGHT.USER.HASH(userId), 3600 * 12);
   }
 
-  async getDrinkQuota(): Promise<{ quota: number; exp: number }> {
+  async getDrinkQuota(): Promise<{ quota: number; eventStartDate: string|null; eventEndDate: string|null }> {
+
+    const isLadiesNightActive = await this.isLadiesNightActive2();
+    if (!isLadiesNightActive) return { quota: 0, eventStartDate: null, eventEndDate: null };
+
+    // ? bch nradhi 7ama none less
+    const [cronStartDate_ladiesNight, cronEndDate_ladiesNight] = await this.redis.hmget(
+        HASHES.LADIES_NIGHT.DATE.HASH(),
+        HASHES.LADIES_NIGHT.DATE.CRON_START_DATE(),
+        HASHES.LADIES_NIGHT.DATE.CRON_END_DATE(),
+      );
+
     return {
       quota: LadiesNightService.DRINK_QUOTA,
-      exp: Date.now() + 1000,
+      eventStartDate: cronStartDate_ladiesNight,
+      eventEndDate: cronEndDate_ladiesNight,
     };
   }
 
@@ -185,7 +197,7 @@ export class LadiesNightService {
   async getUserQuota(userId: string) {
     const drinksConsumed = await this.getUserDrinksConsumed(userId);
 
-    const { quota, exp } = await this.getDrinkQuota();
+    const { quota, } = await this.getDrinkQuota();
 
     const code = await this.getCode(userId);
 
@@ -193,7 +205,6 @@ export class LadiesNightService {
       drinksConsumed,
       code,
       quota,
-      exp,
     };
   }
 
