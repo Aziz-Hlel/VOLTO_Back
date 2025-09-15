@@ -94,7 +94,8 @@ Authorization: Bearer {{login.response.body.accessToken}}
     "description": "This is a test event for ladies night",
     "startDate": null,
     "endDate": null,
-    "cronStartDate" : ""
+    "cronStartDate" : "",
+    "cronEndDate":"",
     "thumbnailKey": "{{getPresignedUrl.response.body.s3Key}}",
     "videoKey": "{{getPresignedUrl2.response.body.s3Key}}"
 }
