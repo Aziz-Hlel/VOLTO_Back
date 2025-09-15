@@ -140,7 +140,7 @@ export class LadiesNightGateway {
 
       socket.emit('drink-quota', getDrinkQuota);
     } catch (error) {
-      socket.emit('drink-quota', { error: error.message });
+      socket.emit('drink-quota', { success: false, error: error.message });
     }
   }
 
@@ -151,9 +151,9 @@ export class LadiesNightGateway {
 
       const code = await this.ladiesNightService.getCode(userId);
 
-      socket.emit('get-code', { code: code });
+      socket.emit('get-code', { code: code  , success: true });
     } catch (error) {
-      socket.emit('get-code', { code: null, error: error.message });
+      socket.emit('get-code', { code: null, success: false, error: error.message });
     }
   }
 
@@ -174,7 +174,7 @@ export class LadiesNightGateway {
       if (response.userSocketId)
         this.server.to(response.userSocketId).emit('drink-consumed', response);
     } catch (error) {
-      socket.emit('drink-consumed', error.message);
+      socket.emit('drink-consumed', { success: false, error: error.message });
     }
   }
 }

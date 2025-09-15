@@ -37,7 +37,7 @@ Authorization: Bearer {{login.response.body.accessToken}}
   "startDate": null,
   "endDate": null,
   "cronStartDate": "20 14 * * 1",
-  "cronEndDate": "50 14 * * 1",
+  "cronEndDate": "0 15 * * 1",
   "thumbnailKey": "events/ladies-night-wallpaper.jpg",
   "videoKey": "events/volto-brunch-1.mp4"
 }

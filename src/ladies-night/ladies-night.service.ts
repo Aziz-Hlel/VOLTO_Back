@@ -79,21 +79,19 @@ export class LadiesNightService {
 
   async getDrinkQuota(): Promise<{ quota: number; eventStartDate: string|null; eventEndDate: string|null }> {
 
-    const isLadiesNightActive = await this.isLadiesNightActive2();
-    if (!isLadiesNightActive) return { quota: 0, eventStartDate: null, eventEndDate: null };
-
     // ? bch nradhi 7ama none less
     const [cronStartDate_ladiesNight, cronEndDate_ladiesNight] = await this.redis.hmget(
-        HASHES.LADIES_NIGHT.DATE.HASH(),
-        HASHES.LADIES_NIGHT.DATE.CRON_START_DATE(),
-        HASHES.LADIES_NIGHT.DATE.CRON_END_DATE(),
-      );
-
+      HASHES.LADIES_NIGHT.DATE.HASH(),
+      HASHES.LADIES_NIGHT.DATE.CRON_START_DATE(),
+      HASHES.LADIES_NIGHT.DATE.CRON_END_DATE(),
+    );
+    
     return {
       quota: LadiesNightService.DRINK_QUOTA,
       eventStartDate: cronStartDate_ladiesNight,
       eventEndDate: cronEndDate_ladiesNight,
     };
+
   }
 
   async getUserDrinksConsumed(userId: string): Promise<number> {
@@ -121,6 +119,10 @@ export class LadiesNightService {
   }
 
   async getCode(userId: string): Promise<string | null> {
+
+    const isLadiesNightActive = await this.isLadiesNightActive2();
+    if(!isLadiesNightActive) throw new BadRequestException('Ladies Night is not active');
+
     const userDrinksConsumed = await this.getUserDrinksConsumed(userId);
 
     if (userDrinksConsumed > LadiesNightService.DRINK_QUOTA)
@@ -148,6 +150,11 @@ export class LadiesNightService {
   }
 
   async consumeDrink(code: string) {
+
+    const isLadiesNightActive = await this.isLadiesNightActive2();
+    if(!isLadiesNightActive) throw new BadRequestException('Ladies Night is not active');
+
+
     const userId = await this.redis.hget(HASHES.LADIES_NIGHT.CODES(), code);
 
     if (!userId)
@@ -195,6 +202,10 @@ export class LadiesNightService {
   }
 
   async getUserQuota(userId: string) {
+
+    const isLadiesNightActive = await this.isLadiesNightActive2();
+    if(!isLadiesNightActive) throw new BadRequestException('Ladies Night is not active');
+
     const drinksConsumed = await this.getUserDrinksConsumed(userId);
 
     const { quota, } = await this.getDrinkQuota();
@@ -202,6 +213,7 @@ export class LadiesNightService {
     const code = await this.getCode(userId);
 
     return {
+      success: true,
       drinksConsumed,
       code,
       quota,
