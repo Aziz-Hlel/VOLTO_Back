@@ -162,12 +162,12 @@ export class LadiesNightGateway {
   @SubscribeMessage('consume-drink')
   async consumeDrink(
     @ConnectedSocket() socket: authSocket,
-    @MessageBody() {code}:{code:string},
+    @MessageBody() payload:{code:string},
   ) {
     try {
-      if (!code) throw new WsException('No code provided');
+      if (!payload.code) throw new WsException('No code provided');
 
-      const response = await this.ladiesNightService.consumeDrink(code);
+      const response = await this.ladiesNightService.consumeDrink(payload.code);
 
       socket.emit('drink-consumed', response);
 
