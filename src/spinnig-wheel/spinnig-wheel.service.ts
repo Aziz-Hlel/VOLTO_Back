@@ -346,7 +346,6 @@ export class SpinnigWheelService {
 
     await this.redis.hmset(HASHES.SPINNING_WHEEL.USER.HASH(userId), {
       [HASHES.SPINNING_WHEEL.USER.USER_REDEEMED_CODE()]: 'true',
-      [HASHES.SPINNING_WHEEL.USER.REWARD_ID()]: null,
       [HASHES.SPINNING_WHEEL.USER.USER_CODE()]: null
     });
 

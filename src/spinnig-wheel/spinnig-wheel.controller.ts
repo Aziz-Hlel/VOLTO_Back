@@ -11,7 +11,6 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { SpinnigWheelService } from './spinnig-wheel.service';
-import { CreateSpinnigWheel } from './dto/create-spinnig-wheel.dto';
 import { UpdateSpinnigWheelDto } from './dto/update-spinnig-wheel.dto';
 import { JwtAccessGuard } from 'src/auth/guards/jwt.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
