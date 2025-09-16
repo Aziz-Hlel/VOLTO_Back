@@ -207,19 +207,20 @@ export class SpinnigWheelService {
     codeRedeemed: false
 
   };
-  if(user[HASHES.SPINNING_WHEEL.USER.USER_REDEEMED_CODE()]==='true')
-    return {
-      hasPlayed: true,
-      code: null,
-      codeRedeemed: true
-    }
-
+  
   const rewardId = user[HASHES.SPINNING_WHEEL.USER.REWARD_ID()]
   const rewardObject = await this.spinnigWheelRewardService.getRewardById(rewardId);
   
   if(!rewardObject.exist)
     throw new BadRequestException('Reward with the id doesnt exist')
-
+  
+  if(user[HASHES.SPINNING_WHEEL.USER.USER_REDEEMED_CODE()]==='true')
+    return {
+  hasPlayed: true,
+  code: null,
+  codeRedeemed: true,
+  winningPrize : rewardObject.rewardName
+}
     return {
       hasPlayed: true,
       code: user[HASHES.SPINNING_WHEEL.USER.USER_CODE()],
