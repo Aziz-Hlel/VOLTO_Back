@@ -28,11 +28,16 @@ export class SpinnigWheelController {
   @UseGuards(JwtAccessGuard)
   @HttpCode(200)
   @Get('')
-  async getisActive() {
+  async getisActive(@CurrentUser() user: AuthUser) {
 
     const spinnigWheel = await this.spinnigWheelService.isSpinningWheelAvailable();
 
-    return spinnigWheel;
+    if(!spinnigWheel.isAvailable)
+      return spinnigWheel
+    
+    const user_quota = await this.spinnigWheelService.getQuota(user.id);
+
+    return {...spinnigWheel,...user_quota};
   }
 
 
@@ -101,7 +106,7 @@ export class SpinnigWheelController {
 
     return response;
 
-  }
+  };
 
 
 
