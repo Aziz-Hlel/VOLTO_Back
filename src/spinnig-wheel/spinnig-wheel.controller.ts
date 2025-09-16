@@ -37,7 +37,13 @@ export class SpinnigWheelController {
     
     const user_quota = await this.spinnigWheelService.getQuota(user.id);
 
-    return {...spinnigWheel,...user_quota};
+    if(user_quota.hasPlayed)
+       return {...spinnigWheel,...user_quota}; 
+
+    const rewards = await this.spinnigWheelService.getRewards();
+
+    return {...spinnigWheel,...user_quota ,...rewards};
+
   }
 
 

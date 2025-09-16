@@ -45,8 +45,10 @@ export class SpinnigWheelService {
     
     if ( currentDate < spinnigWheel.startDate  || currentDate > spinnigWheel.endDate )
       return {
-    isAvailable: false
-  };
+        isAvailable: false,
+        name: spinnigWheel.name,
+        startDate : currentDate < spinnigWheel.startDate ? spinnigWheel.startDate : undefined
+      };
 
     return {
       name: spinnigWheel.name,
@@ -65,7 +67,7 @@ export class SpinnigWheelService {
       HASHES.SPINNING_WHEEL.DATE.NAME(),
     )
 
-    if (!strStartDate || !strEndDate || !spinnigWheelName) return  await this.updateWheelCache();
+    if (!strStartDate || !strEndDate ) return await this.updateWheelCache();
 
     const currentDate = new Date();
     
@@ -74,7 +76,9 @@ export class SpinnigWheelService {
 
     if ( currentDate < startDate  || currentDate > endDate )
       return {
-        isAvailable: false
+        isAvailable: false,
+        name: spinnigWheelName,
+        startDate : currentDate < startDate ? startDate : undefined
       };
 
     return {
@@ -361,5 +365,9 @@ export class SpinnigWheelService {
   
 
 
-  
+  async getRewards () {
+    const reward = await this.spinnigWheelRewardService.findAll();
+    
+    return reward;
+  }
 }
