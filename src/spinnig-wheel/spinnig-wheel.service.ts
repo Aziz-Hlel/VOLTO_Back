@@ -201,6 +201,7 @@ export class SpinnigWheelService {
     hasPlayed: false,
     code: null,
     codeRedeemed: false
+
   };
   if(user[HASHES.SPINNING_WHEEL.USER.USER_REDEEMED_CODE()]==='true')
     return {
@@ -208,10 +209,18 @@ export class SpinnigWheelService {
       code: null,
       codeRedeemed: true
     }
+
+  const rewardId = user[HASHES.SPINNING_WHEEL.USER.REWARD_ID()]
+  const rewardObject = await this.spinnigWheelRewardService.getRewardById(rewardId);
+  
+  if(!rewardObject.exist)
+    throw new BadRequestException('Reward with the id doesnt exist')
+
     return {
       hasPlayed: true,
       code: user[HASHES.SPINNING_WHEEL.USER.USER_CODE()],
-      codeRedeemed: false
+      codeRedeemed: false,
+      winningPrize : rewardObject.rewardName
     }
 
 
@@ -236,16 +245,16 @@ export class SpinnigWheelService {
   }
 
 
-  async generateCode({userId, wheelRewardId}:{userId: string, wheelRewardId: string}){ 
+  async generateCode({userId, wheelRewardId}:{userId: string, wheelRewardId: string}){
 
     const isSpinningWheelAvailable = await this.isSpinningWheelAvailable();
 
     if (!isSpinningWheelAvailable.isAvailable)
       throw new BadRequestException('Spinning wheel is not available');
     
-    const isRewardExists = await this.spinnigWheelRewardService.isRewardIdExists(wheelRewardId);
+    const isRewardExists = await this.spinnigWheelRewardService.getRewardById(wheelRewardId);
 
-    if(!isRewardExists)
+    if(!isRewardExists.exist)
       throw new BadRequestException('Reward does not exist');
     
 
@@ -323,9 +332,9 @@ export class SpinnigWheelService {
     const userRewardId = userCachedDetails[HASHES.SPINNING_WHEEL.USER.REWARD_ID()];
 
 
-    const isRewardExists = await this.spinnigWheelRewardService.isRewardIdExists(userRewardId);
+    const isRewardExists = await this.spinnigWheelRewardService.getRewardById(userRewardId);
 
-    if(!isRewardExists)
+    if(!isRewardExists.exist)
       throw new BadRequestException('Reward of the code not found');
 
 

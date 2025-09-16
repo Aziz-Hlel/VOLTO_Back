@@ -53,6 +53,8 @@ export class SpinnigWheelRewardService {
     return {rewardsList};
   };
 
+
+
   update = async (updateSpinningWheelRewardDto: UpdateSpinnigWheelRewardDto) => {
 
     const rewardIds = updateSpinningWheelRewardDto.rewards.map(r => r.id);
@@ -94,14 +96,14 @@ export class SpinnigWheelRewardService {
 
 
 
-  async isRewardIdExists(rewardId: string) {
+  async getRewardById(rewardId: string):Promise<{exist:false,} | {exist:true,rewardName:string} > {
 
 
-   const rewardIdExists =await this.redis.exists(HASHES.SPINNING_WHEEL.REWARDS.REWARD_NAME(),rewardId);
+   const rewardName =await this.redis.hget(HASHES.SPINNING_WHEEL.REWARDS.REWARD_NAME(),rewardId);
 
-    if(!rewardIdExists) return false;
+    if(!rewardName) return {exist: false};
 
-    return true
+    return {exist:true, rewardName}
 
   }
 

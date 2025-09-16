@@ -84,9 +84,9 @@ export class SpinnigWheelController {
   @UseGuards(JwtAccessGuard)
   @HttpCode(200)
   @Post('generate-code')
-  async generateCode(@CurrentUser() user: AuthUser, @Body() { wheelRewardId}:  {wheelRewardId:string}) {
+  async generateCode(@CurrentUser() user: AuthUser, @Body() payload:  {wheelRewardId:string}) {
     
-    const response = await this.spinnigWheelService.generateCode({userId: user.id, wheelRewardId: wheelRewardId});
+    const response = await this.spinnigWheelService.generateCode({userId: user.id, wheelRewardId: payload.wheelRewardId});
 
     return response;
 
