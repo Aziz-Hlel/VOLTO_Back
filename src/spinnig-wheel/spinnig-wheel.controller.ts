@@ -93,11 +93,11 @@ export class SpinnigWheelController {
   @Roles(Role.WAITER)
   @HttpCode(200)
   @Post('redeem-code')
-  async redeemCode(@CurrentUser() user: AuthUser, @Body() {code}:  {code:string}) {
+  async redeemCode(@CurrentUser() user: AuthUser, @Body() payload:  {code:string}) {
 
-    if(!code) throw new BadRequestException('Code is required');
+    if(!payload.code) throw new BadRequestException('Code is required');
 
-    const response = await this.spinnigWheelService.redeemCode(code);
+    const response = await this.spinnigWheelService.redeemCode(payload.code);
 
     return response;
 
